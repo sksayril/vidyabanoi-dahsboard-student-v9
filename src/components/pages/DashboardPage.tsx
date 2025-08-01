@@ -1,5 +1,6 @@
-import React from 'react';
-import { BookOpen, Trophy, Calendar, Bell, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { BookOpen, Trophy, Calendar, Bell, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { getHeroBanners } from '../../api';
 
 interface DashboardPageProps {
   user: any;
@@ -7,14 +8,205 @@ interface DashboardPageProps {
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({ user, userData }) => {
+  const [heroBanners, setHeroBanners] = useState<any[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch hero banners on component mount
+  useEffect(() => {
+    const fetchHeroBanners = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getHeroBanners();
+        // Use the data array from the API response
+        const banners = response.data || response;
+        
+        // If API returns empty data, use fallback images
+        if (!banners || banners.length === 0) {
+          const fallbackBanners = [
+            {
+              title: "Welcome to Learning Platform",
+              desktop: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+              mobile: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+              description: "Start your educational journey with us"
+            },
+            {
+              title: "Unlock Your Potential",
+              desktop: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+              mobile: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+              description: "Discover knowledge that transforms lives"
+            },
+            {
+              title: "Learn. Grow. Succeed.",
+              desktop: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+              mobile: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+              description: "Excellence in education, innovation in learning"
+            }
+          ];
+          setHeroBanners(fallbackBanners);
+        } else {
+          setHeroBanners(banners);
+        }
+      } catch (error) {
+        console.error('Error fetching hero banners:', error);
+        // Use fallback banners in case of API error
+        const fallbackBanners = [
+          {
+            title: "Welcome to Learning Platform",
+            desktop: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+            mobile: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+            description: "Start your educational journey with us"
+          }
+        ];
+        setHeroBanners(fallbackBanners);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHeroBanners();
+  }, []);
+
+  // Auto-slide functionality
+  useEffect(() => {
+    if (heroBanners.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % heroBanners.length);
+      }, 5000); // Change slide every 5 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [heroBanners.length]);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % heroBanners.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + heroBanners.length) % heroBanners.length);
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
+
   return (
     <div className="space-y-8">
+      {/* Hero Banner Carousel */}
+      {!isLoading && heroBanners.length > 0 && (
+        <div className="relative w-full h-64 md:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-2xl">
+          {/* Main Image Container */}
+          <div className="relative w-full h-full">
+            {heroBanners.map((banner, index) => (
+              <div
+                key={index}
+                className={`absolute inset-0 transition-all duration-700 ease-in-out transform ${
+                  index === currentSlide 
+                    ? 'opacity-100 translate-x-0 scale-100' 
+                    : index < currentSlide 
+                      ? 'opacity-0 -translate-x-full scale-95' 
+                      : 'opacity-0 translate-x-full scale-95'
+                }`}
+              >
+                {/* Mobile Image */}
+                <img
+                  src={banner.mobile}
+                  alt={banner.title || `Hero Banner ${index + 1}`}
+                  className="w-full h-full object-cover md:hidden"
+                  onError={(e) => {
+                    console.error('Mobile banner image failed to load:', banner);
+                    e.currentTarget.src = 'https://via.placeholder.com/800x600/3B82F6/FFFFFF?text=Mobile+Banner';
+                  }}
+                />
+                {/* Desktop Image */}
+                <img
+                  src={banner.desktop}
+                  alt={banner.title || `Hero Banner ${index + 1}`}
+                  className="w-full h-full object-cover hidden md:block"
+                  onError={(e) => {
+                    console.error('Desktop banner image failed to load:', banner);
+                    e.currentTarget.src = 'https://via.placeholder.com/1200x400/3B82F6/FFFFFF?text=Desktop+Banner';
+                  }}
+                />
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40"></div>
+                
+                {/* Content Overlay */}
+                {banner.title && (
+                  <div className="absolute bottom-6 left-6 right-6 text-white">
+                    <h3 className="text-2xl md:text-3xl font-bold mb-2 drop-shadow-lg">
+                      {banner.title}
+                    </h3>
+                    {banner.description && (
+                      <p className="text-sm md:text-base opacity-90 drop-shadow-md max-w-2xl">
+                        {banner.description}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Navigation Arrows */}
+          {heroBanners.length > 1 && (
+            <>
+              <button
+                onClick={prevSlide}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all duration-200 hover:scale-110 group"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="h-6 w-6 group-hover:scale-110 transition-transform" />
+              </button>
+              <button
+                onClick={nextSlide}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all duration-200 hover:scale-110 group"
+                aria-label="Next slide"
+              >
+                <ChevronRight className="h-6 w-6 group-hover:scale-110 transition-transform" />
+              </button>
+            </>
+          )}
+
+          {/* Dots Indicator */}
+          {heroBanners.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+              {heroBanners.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    index === currentSlide 
+                      ? 'bg-white scale-125 shadow-lg' 
+                      : 'bg-white/50 hover:bg-white/70 hover:scale-110'
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Loading Shimmer Effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse opacity-20"></div>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="w-full h-64 md:h-80 lg:h-96 rounded-2xl bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+          <div className="flex items-center justify-center h-full">
+            <div className="text-gray-500 text-lg font-medium">Loading banners...</div>
+          </div>
+        </div>
+      )}
+
       {/* Welcome Section */}
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        <h2 className="text-3xl font-bold text-white mb-2">
           Welcome back, {user.name}! 👋
         </h2>
-        <p className="text-gray-600">
+        <p className="text-white">
           Ready to continue your learning journey?
         </p>
       </div>

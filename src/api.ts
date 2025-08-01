@@ -105,9 +105,21 @@ export class AIQuizService {
     
     // Parse the AI response and extract the quiz data
     try {
-      const quizData = JSON.parse(data.completion);
+      // Remove markdown code blocks and extract JSON content using regex
+      const jsonMatch = data.completion.match(/```json\s*([\s\S]*?)\s*```/);
+      let jsonString = jsonMatch ? jsonMatch[1] : data.completion;
+      
+      // If no markdown blocks found, try to extract JSON directly
+      if (!jsonMatch) {
+        // Look for JSON object starting with { and ending with }
+        const directJsonMatch = data.completion.match(/\{[\s\S]*\}/);
+        jsonString = directJsonMatch ? directJsonMatch[0] : data.completion;
+      }
+      
+      const quizData = JSON.parse(jsonString);
       return quizData;
     } catch (error) {
+      console.error('Original AI response:', data.completion);
       throw new Error('Failed to parse AI quiz response');
     }
   }
@@ -147,6 +159,11 @@ export class ApiService {
   // Get subcategories for a specific parent category
   static async getSubcategories(parentCategoryId: string): Promise<SubcategoriesResponse[]> {
     return this.makeRequest<SubcategoriesResponse[]>(`/categories/subcategories/${parentCategoryId}`);
+  }
+
+  // Get hero banners
+  static async getHeroBanners(): Promise<any> {
+    return this.makeRequest<any>('/get/hero-banners');
   }
 
   // Register a new user
@@ -307,6 +324,7 @@ export class ApiService {
 // Export individual functions for easier use
 export const getParentCategories = () => ApiService.getParentCategories();
 export const getSubcategories = (parentCategoryId: string) => ApiService.getSubcategories(parentCategoryId);
+export const getHeroBanners = () => ApiService.getHeroBanners();
 export const registerUser = (userData: RegisterRequest) => ApiService.registerUser(userData);
 export const loginUser = (loginData: LoginRequest) => ApiService.loginUser(loginData);
 export const createSubscriptionOrder = (orderData: CreateOrderRequest) => ApiService.createSubscriptionOrder(orderData);

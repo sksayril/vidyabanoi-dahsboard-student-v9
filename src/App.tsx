@@ -3,6 +3,8 @@ import { LoginForm } from './components/LoginForm';
 import { SignupForm } from './components/SignupForm';
 import { Dashboard } from './components/Dashboard';
 import { User, LoginResponse } from './types/api';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   const [currentView, setCurrentView] = useState<'login' | 'signup' | 'dashboard'>('login');
@@ -62,8 +64,14 @@ function App() {
   // Show loading screen while checking auth
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-600 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen flex items-center justify-center">
+        {/* Animated Stars Background */}
+        <div className="stars">
+          {Array.from({ length: 20 }, (_, i) => (
+            <div key={i} className="star"></div>
+          ))}
+        </div>
+        <div className="content-wrapper text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Loading...</h1>
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
         </div>
@@ -73,33 +81,74 @@ function App() {
 
   if (currentView === 'login') {
     return (
-      <LoginForm
-        onLogin={handleLogin}
-        onSwitchToSignup={() => setCurrentView('signup')}
-      />
+      <>
+        {/* Animated Stars Background */}
+        <div className="stars">
+          {Array.from({ length: 20 }, (_, i) => (
+            <div key={i} className="star"></div>
+          ))}
+        </div>
+        <div className="content-wrapper">
+          <LoginForm
+            onLogin={handleLogin}
+            onSwitchToSignup={() => setCurrentView('signup')}
+          />
+        </div>
+      </>
     );
   }
 
   if (currentView === 'signup') {
     return (
-      <SignupForm
-        onSignup={handleSignup}
-        onSwitchToLogin={() => setCurrentView('login')}
-      />
+      <>
+        {/* Animated Stars Background */}
+        <div className="stars">
+          {Array.from({ length: 20 }, (_, i) => (
+            <div key={i} className="star"></div>
+          ))}
+        </div>
+        <div className="content-wrapper">
+          <SignupForm
+            onSignup={handleSignup}
+            onSwitchToLogin={() => setCurrentView('login')}
+          />
+        </div>
+      </>
     );
   }
 
   if (currentView === 'dashboard' && user) {
-    return <Dashboard user={user} userData={userData} onLogout={handleLogout} />;
+    return (
+      <>
+        {/* Animated Stars Background */}
+        <div className="stars">
+          {Array.from({ length: 20 }, (_, i) => (
+            <div key={i} className="star"></div>
+          ))}
+        </div>
+        <div className="content-wrapper">
+          <Dashboard user={user} userData={userData} onLogout={handleLogout} />
+        </div>
+      </>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">Loading...</h1>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+    <>
+      <ToastContainer position="top-center" autoClose={2000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+      <div className="min-h-screen flex items-center justify-center">
+        {/* Animated Stars Background */}
+        <div className="stars">
+          {Array.from({ length: 20 }, (_, i) => (
+            <div key={i} className="star"></div>
+          ))}
+        </div>
+        <div className="content-wrapper text-center">
+          <h1 className="text-2xl font-bold text-white mb-4">Loading...</h1>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

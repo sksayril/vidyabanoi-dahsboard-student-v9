@@ -156,9 +156,9 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ userData, on
       <div className="text-center space-y-4">
         <div className="flex items-center justify-center space-x-2 mb-4">
           <Crown className="h-8 w-8 text-yellow-500" />
-          <h1 className="text-3xl font-bold text-gray-900">Premium Subscription</h1>
+          <h1 className="text-3xl font-bold text-white">Premium Subscription</h1>
         </div>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="text-lg text-white max-w-2xl mx-auto">
           Unlock unlimited access to premium learning materials, AI-powered assistance, and exclusive content
         </p>
       </div>

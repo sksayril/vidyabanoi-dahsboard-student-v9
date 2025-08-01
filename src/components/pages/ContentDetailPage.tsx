@@ -987,19 +987,19 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{selectedContent.name}</h2>
-              <p className="text-sm text-gray-600">Learning Materials</p>
+              <h2 className="text-2xl font-bold text-white">{selectedContent.name}</h2>
+              <p className="text-sm text-white">Learning Materials</p>
             </div>
           </div>
         </div>
 
         {/* Navigation Breadcrumb */}
         {navigationStack.length > 0 && (
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <div className="flex items-center space-x-2 text-sm text-white">
             <span>Path:</span>
             {navigationStack.map((level, index) => (
               <React.Fragment key={level.id}>
-                <span className="text-blue-600">{level.name}</span>
+                <span className="text-white">{level.name}</span>
                 {index < navigationStack.length - 1 && <ChevronRight className="h-4 w-4" />}
               </React.Fragment>
             ))}
@@ -1009,7 +1009,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
         {deepLoading && (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="ml-3 text-gray-600">Loading learning materials...</span>
+            <span className="ml-3 text-white">Loading learning materials...</span>
           </div>
         )}
 
@@ -1159,7 +1159,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
         {!deepLoading && !deepError && deepContent.length === 0 && (
           <div className="text-center py-12">
             <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">No learning materials available for this section.</p>
+            <p className="text-white">No learning materials available for this section.</p>
           </div>
         )}
 
@@ -1183,8 +1183,8 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{subcategoryName}</h2>
-            <p className="text-sm text-gray-600">Learning Content</p>
+            <h2 className="text-2xl font-bold text-white">{subcategoryName}</h2>
+            <p className="text-sm text-white">Learning Content</p>
           </div>
         </div>
       </div>
@@ -1192,7 +1192,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
       {loading && (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">Loading content...</span>
+          <span className="ml-3 text-white">Loading content...</span>
         </div>
       )}
 
@@ -1367,7 +1367,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
       {!loading && !error && content.length === 0 && (
         <div className="text-center py-12">
           <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No content available for this section.</p>
+          <p className="text-white">No content available for this section.</p>
         </div>
       )}
 

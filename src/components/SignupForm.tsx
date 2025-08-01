@@ -3,13 +3,15 @@ import { Mail, Lock, User, Eye, EyeOff, Phone, BookOpen, ArrowLeft, ArrowRight, 
 import { AnimatedCat } from './AnimatedCat';
 import { getParentCategories, getSubcategories, registerUser } from '../api';
 import { Category, Subcategory, RegisterRequest } from '../types/api';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface SignupFormProps {
   onSignup: (name: string, email: string, password: string) => void;
   onSwitchToLogin: () => void;
 }
 
-type Step = 'personal' | 'contact' | 'categories' | 'password' | 'review';
+type Step = 'personal' | 'contact' | 'categories' | 'password';
 
 export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogin }) => {
   const [currentStep, setCurrentStep] = useState<Step>('personal');
@@ -37,7 +39,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
     { key: 'contact', title: 'Contact', description: 'How to reach you' },
     { key: 'categories', title: 'Interests', description: 'Choose your subjects' },
     { key: 'password', title: 'Security', description: 'Create your password' },
-    { key: 'review', title: 'Review', description: 'Confirm your details' },
   ];
 
   // Fetch parent categories on component mount
@@ -190,18 +191,20 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
       const response = await registerUser(userData);
       
       if (response.success) {
+        setIsLoading(false); // Set loading to false first
         setSuccess('Account created successfully! Redirecting to login...');
+        toast.success('Account created successfully!');
         // Wait a moment to show success message, then redirect to login
         setTimeout(() => {
           onSwitchToLogin();
         }, 2000);
       } else {
         setError(response.message || 'Registration failed. Please try again.');
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Registration error:', error);
       setError('Registration failed. Please check your details and try again.');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -220,13 +223,13 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
                   ? 'bg-green-500 border-green-500 text-white' 
                   : isActive 
                     ? 'bg-blue-500 border-blue-500 text-white' 
-                    : 'bg-gray-200 border-gray-300 text-gray-500'
+                    : 'bg-gray-600 border-gray-500 text-gray-300'
               }`}>
                 {isCompleted ? <Check className="w-4 h-4" /> : index + 1}
               </div>
               {index < steps.length - 1 && (
                 <div className={`flex-1 h-0.5 mx-2 ${
-                  isCompleted ? 'bg-green-500' : 'bg-gray-300'
+                  isCompleted ? 'bg-green-500' : 'bg-gray-600'
                 }`} />
               )}
             </div>
@@ -234,10 +237,10 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
         })}
       </div>
       <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-800">
+        <h2 className="text-xl font-semibold text-white">
           {steps.find(s => s.key === currentStep)?.title}
         </h2>
-        <p className="text-gray-600 text-sm mt-1">
+        <p className="text-white text-sm mt-1">
           {steps.find(s => s.key === currentStep)?.description}
         </p>
       </div>
@@ -247,7 +250,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
   const renderPersonalStep = () => (
     <div className="space-y-6">
       <div className="relative">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-white mb-2">
           Full Name
         </label>
         <div className="relative">
@@ -268,7 +271,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
   const renderContactStep = () => (
     <div className="space-y-6">
       <div className="relative">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-white mb-2">
           Email Address
         </label>
         <div className="relative">
@@ -285,7 +288,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
       </div>
 
       <div className="relative">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-white mb-2">
           Phone Number
         </label>
         <div className="relative">
@@ -306,7 +309,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
   const renderCategoriesStep = () => (
     <div className="space-y-6">
       <div className="relative">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-white mb-2">
           Main Category
         </label>
         <div className="relative">
@@ -337,7 +340,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
       </div>
 
       <div className="relative">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-white mb-2">
           Subcategory
         </label>
         <div className="relative">
@@ -376,7 +379,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
   const renderPasswordStep = () => (
     <div className="space-y-6">
       <div className="relative">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-white mb-2">
           Password
         </label>
         <div className="relative">
@@ -400,7 +403,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
       </div>
 
       <div className="relative">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-white mb-2">
           Confirm Password
         </label>
         <div className="relative">
@@ -425,41 +428,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
     </div>
   );
 
-  const renderReviewStep = () => (
-    <div className="space-y-6">
-      <div className="bg-gray-50 rounded-lg p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Review Your Information</h3>
-        
-        <div className="grid grid-cols-1 gap-4">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Name:</span>
-            <span className="font-medium">{name}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Email:</span>
-            <span className="font-medium">{email}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Phone:</span>
-            <span className="font-medium">{phone}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Main Category:</span>
-            <span className="font-medium">
-              {categories.find(c => c._id === selectedCategory)?.name}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Subcategory:</span>
-            <span className="font-medium">
-              {subcategories.find(s => s._id === selectedSubcategory)?.name}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 'personal':
@@ -470,16 +438,15 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
         return renderCategoriesStep();
       case 'password':
         return renderPasswordStep();
-      case 'review':
-        return renderReviewStep();
       default:
         return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-600 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <ToastContainer />
+      <div className="bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-700">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-center">
           <AnimatedCat size="lg" className="mx-auto mb-4" />
@@ -488,7 +455,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
         </div>
 
         {/* Form */}
-        <div className="p-6">
+        <div className="p-6 bg-gray-800">
           {renderStepIndicator()}
           
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -502,11 +469,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
             )}
 
             {/* Success Message */}
-            {success && (
-              <div className="text-green-600 text-sm text-center bg-green-50 p-3 rounded-lg">
-                {success}
-              </div>
-            )}
+            {success && null}
 
             {/* Navigation Buttons */}
             <div className="flex gap-3">
@@ -521,10 +484,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
                 </button>
               )}
               
-              {currentStep === 'review' ? (
+              {/* Show submit button only on last step */}
+              {currentStep === 'password' ? (
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || !!success}
                   className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
@@ -532,6 +496,8 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                       Creating Account...
                     </div>
+                  ) : success ? (
+                    'Account Created Successfully'
                   ) : (
                     'Create Account'
                   )}

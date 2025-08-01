@@ -80,34 +80,34 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-transparent">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-gray-800/90 backdrop-blur-md shadow-lg border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo and Sidebar Toggle */}
             <div className="flex items-center">
               <button
                 onClick={toggleSidebar}
-                className="hidden lg:block p-2 text-gray-400 hover:text-gray-600 mr-4"
+                className="hidden lg:block p-2 text-gray-400 hover:text-gray-200 mr-4"
               >
                 <Menu className="h-6 w-6" />
               </button>
-              <BookOpen className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-2xl font-bold text-gray-900">Vidyabani</h1>
+              <BookOpen className="h-8 w-8 text-blue-400 mr-3" />
+              <h1 className="text-2xl font-bold text-white">Vidyabani</h1>
             </div>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
-              <button className="p-2 text-gray-400 hover:text-gray-600">
+              <button className="p-2 text-gray-400 hover:text-gray-200">
                 <Bell className="h-6 w-6" />
               </button>
               <div className="flex items-center space-x-3">
                 <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
+                  <p className="text-sm font-medium text-white">{user.name}</p>
+                  <p className="text-xs text-gray-300">{user.email}</p>
                 </div>
-                <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
+                <div className="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center">
                   <User className="h-5 w-5 text-white" />
                 </div>
               </div>
@@ -117,7 +117,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
             <div className="md:hidden">
               <button
                 onClick={toggleMobileMenu}
-                className="p-2 text-gray-400 hover:text-gray-600"
+                className="p-2 text-gray-400 hover:text-gray-200"
               >
                 {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
@@ -127,20 +127,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-white border-t">
+          <div className="md:hidden bg-gray-800/95 border-t border-gray-700">
             <div className="px-4 py-3 space-y-3">
               <div className="flex items-center space-x-3">
-                <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
+                <div className="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center">
                   <User className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
+                  <p className="text-sm font-medium text-white">{user.name}</p>
+                  <p className="text-xs text-gray-300">{user.email}</p>
                 </div>
               </div>
               <button
                 onClick={onLogout}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 w-full"
+                className="flex items-center space-x-2 text-gray-300 hover:text-white w-full"
               >
                 <LogOut className="h-5 w-5" />
                 <span>Logout</span>
@@ -153,7 +153,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
       <div className="flex">
         {/* Desktop Sidebar */}
         <aside className={`hidden lg:block lg:flex-shrink-0 ${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300`}>
-          <div className="flex flex-col h-full bg-white border-r border-gray-200">
+          <div className="flex flex-col h-full bg-gray-800/90 backdrop-blur-md border-r border-gray-700">
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
               <nav className="mt-5 flex-1 px-2 space-y-1">
                 {navigationItems.map((item) => {
@@ -164,8 +164,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
                       onClick={() => setActiveTab(item.id as ActiveTab)}
                       className={`group flex items-center px-2 py-3 text-sm font-medium rounded-md w-full text-left transition-colors duration-200 ${
                         activeTab === item.id
-                          ? 'bg-blue-100 text-blue-900'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-blue-500/20 text-blue-400'
+                          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                       }`}
                     >
                       <Icon className={`mr-3 h-5 w-5 ${item.color}`} />
@@ -173,7 +173,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
                       {!isSidebarOpen && (
                         <div className="relative group">
                           <Icon className={`h-5 w-5 ${item.color}`} />
-                          <div className="absolute left-full ml-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                          <div className="absolute left-full ml-2 px-2 py-1 text-xs text-white bg-gray-700 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
                             {item.label}
                           </div>
                         </div>
@@ -195,7 +195,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
       </div>
 
       {/* Mobile Bottom Navigation Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-800/95 backdrop-blur-md border-t border-gray-700 z-50">
         <div className="flex justify-around items-center h-16">
           {navigationItems.map((item) => {
             const Icon = item.icon;
@@ -205,8 +205,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
                 onClick={() => setActiveTab(item.id as ActiveTab)}
                 className={`flex flex-col items-center justify-center flex-1 h-full transition-colors duration-200 ${
                   activeTab === item.id
-                    ? 'text-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-blue-400'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
                 <Icon className={`h-6 w-6 mb-1 ${activeTab === item.id ? item.color : ''}`} />

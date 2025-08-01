@@ -246,9 +246,9 @@ export const AiQuizPage: React.FC = () => {
       <div className="text-center">
         <div className="flex items-center justify-center mb-4">
           <Brain className="h-12 w-12 text-orange-600 mr-3" />
-          <h1 className="text-3xl font-bold text-gray-900">AI Quiz Generator</h1>
+          <h1 className="text-3xl font-bold text-white">AI Quiz Generator</h1>
         </div>
-        <p className="text-gray-600 text-lg">Choose a topic and let AI create a personalized quiz for you!</p>
+        <p className="text-white text-lg">Choose a topic and let AI create a personalized quiz for you!</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-lg p-8">
@@ -623,8 +623,8 @@ export const AiQuizPage: React.FC = () => {
           </div>
         </div>
       </div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">Generating Your Quiz</h2>
-      <p className="text-gray-600 text-lg mb-8">Our AI is creating personalized questions just for you...</p>
+      <h2 className="text-2xl font-bold text-white mb-4">Generating Your Quiz</h2>
+      <p className="text-white text-lg mb-8">Our AI is creating personalized questions just for you...</p>
       
       <div className="flex items-center justify-center space-x-2">
         <div className="w-3 h-3 bg-orange-500 rounded-full animate-bounce"></div>
