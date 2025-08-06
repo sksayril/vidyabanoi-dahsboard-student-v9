@@ -190,21 +190,30 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
 
       const response = await registerUser(userData);
       
-      if (response.success) {
-        setIsLoading(false); // Set loading to false first
+      // Handle the specific API response format
+      if (response && response.message === "User registered successfully") {
         setSuccess('Account created successfully! Redirecting to login...');
-        toast.success('Account created successfully!');
-        // Wait a moment to show success message, then redirect to login
+        toast.success('Account created successfully! Please login with your credentials.');
+        
+        // Wait 2 seconds to show success message, then redirect to login
         setTimeout(() => {
           onSwitchToLogin();
         }, 2000);
       } else {
         setError(response.message || 'Registration failed. Please try again.');
-        setIsLoading(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
-      setError('Registration failed. Please check your details and try again.');
+      
+      // Handle specific API errors
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else if (error.message) {
+        setError(error.message);
+      } else {
+        setError('Registration failed. Please check your details and try again.');
+      }
+    } finally {
       setIsLoading(false);
     }
   };
@@ -449,7 +458,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
       <div className="bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-700">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-center">
-          <AnimatedCat size="lg" className="mx-auto mb-4" />
+          <AnimatedCat className="mx-auto mb-4 w-16 h-16" />
           <h1 className="text-2xl font-bold text-white mb-2">Vidyabani</h1>
           <p className="text-blue-100 text-sm">Join our learning adventure!</p>
         </div>
@@ -469,7 +478,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
             )}
 
             {/* Success Message */}
-            {success && null}
+            {success && (
+              <div className="text-green-600 text-sm text-center bg-green-50 p-3 rounded-lg border border-green-200">
+                {success}
+              </div>
+            )}
 
             {/* Navigation Buttons */}
             <div className="flex gap-3">

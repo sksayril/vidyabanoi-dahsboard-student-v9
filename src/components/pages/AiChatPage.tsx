@@ -15,10 +15,13 @@ import {
   MicOff,
   Volume2,
   VolumeX,
-  Paperclip
+  Paperclip,
+  AlertCircle,
+  LogOut
 } from 'lucide-react';
 import { startChat, getChatHistory, continueChat, getChat } from '../../api';
 import { ChatMessage, ChatHistoryItem } from '../../types/api';
+import { AnimatedCat } from '../AnimatedCat';
 
 // Markdown rendering function
 const renderMarkdown = (text: string) => {
@@ -69,6 +72,14 @@ export const AiChatPage: React.FC = () => {
   const [isLoadingChat, setIsLoadingChat] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   
+  // Token expiration states
+  const [showTokenError, setShowTokenError] = useState(false);
+  const [tokenErrorMessage, setTokenErrorMessage] = useState('');
+  
+  // Subscription states
+  const [showSubscriptionRequired, setShowSubscriptionRequired] = useState(false);
+  const [subscriptionMessage, setSubscriptionMessage] = useState('');
+  
   // Voice-related states
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -86,6 +97,61 @@ export const AiChatPage: React.FC = () => {
     'Chemistry formulas',
     'Math problem solving',
   ];
+
+  // Handle token expiration
+  const handleTokenExpiration = (errorMessage: string = 'Token has been invalidated. Please login again.') => {
+    setTokenErrorMessage(errorMessage);
+    setShowTokenError(true);
+    
+    // Clear session data
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    sessionStorage.clear();
+    
+    // Stop any ongoing voice features
+    if (speechSynthesis) {
+      speechSynthesis.cancel();
+    }
+    if (speechRecognition && isRecording) {
+      speechRecognition.stop();
+    }
+    
+    // Redirect to signin after 3 seconds
+    setTimeout(() => {
+      window.location.href = '/signin';
+    }, 3000);
+  };
+
+  // Check API response for token errors
+  const checkTokenError = (response: any) => {
+    if (response && response.message && 
+        (response.message.includes('Token has been invalidated') || 
+         response.message.includes('Please login again') ||
+         response.message.includes('Unauthorized') ||
+         response.message.includes('Invalid token'))) {
+      handleTokenExpiration(response.message);
+      return true;
+    }
+    return false;
+  };
+
+  // Check API response for subscription errors
+  const checkSubscriptionError = (response: any) => {
+    if (response && 
+        response.subscriptionStatus === 'inactive' && 
+        response.message === 'Subscription required') {
+      setSubscriptionMessage(response.message);
+      setShowSubscriptionRequired(true);
+      return true;
+    }
+    return false;
+  };
+
+  // Handle subscription navigation
+  const handleSubscribeClick = () => {
+    // Navigate to subscription section
+    window.location.href = '/dashboard?tab=subscription';
+  };
 
   useEffect(() => {
     loadChatHistory();
@@ -137,9 +203,34 @@ export const AiChatPage: React.FC = () => {
     try {
       setIsLoading(true);
       const response = await getChatHistory();
+      
+      // Check for subscription error first
+      if (checkSubscriptionError(response)) {
+        return;
+      }
+      
+      // Check for token error in response
+      if (checkTokenError(response)) {
+        return;
+      }
+      
       setChatHistory(response.chats);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading chat history:', error);
+      
+      // Check if error response contains subscription error first
+      if (error.response?.data && checkSubscriptionError(error.response.data)) {
+        return;
+      }
+      
+      // Check if error response contains token expiration message
+      if (error.response?.data && checkTokenError(error.response.data)) {
+        return;
+      }
+      
+      // Handle other errors
+      setTokenErrorMessage('Failed to load chat history. Please try again.');
+      setShowTokenError(true);
     } finally {
       setIsLoading(false);
     }
@@ -150,6 +241,16 @@ export const AiChatPage: React.FC = () => {
       setIsLoadingChat(true);
       const chatResponse = await getChat(chatId);
       
+      // Check for subscription error first
+      if (checkSubscriptionError(chatResponse)) {
+        return;
+      }
+      
+      // Check for token error in response
+      if (checkTokenError(chatResponse)) {
+        return;
+      }
+      
       setCurrentChat({
         id: chatResponse.id,
         messages: chatResponse.messages,
@@ -157,8 +258,21 @@ export const AiChatPage: React.FC = () => {
       
       setShowChatHistory(false);
       setShowMobileMenu(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading specific chat:', error);
+      
+      // Check if error response contains subscription error first
+      if (error.response?.data && checkSubscriptionError(error.response.data)) {
+        return;
+      }
+      
+      // Check if error response contains token expiration message
+      if (error.response?.data && checkTokenError(error.response.data)) {
+        return;
+      }
+      
+      setTokenErrorMessage('Failed to load chat. Please try again.');
+      setShowTokenError(true);
     } finally {
       setIsLoadingChat(false);
     }
@@ -181,6 +295,16 @@ export const AiChatPage: React.FC = () => {
           selectedImage || undefined, 
           selectedPdf || undefined
         );
+        
+        // Check for subscription error first (before token error)
+        if (checkSubscriptionError(continueResponse)) {
+          return;
+        }
+        
+        // Check for token error in response
+        if (checkTokenError(continueResponse)) {
+          return;
+        }
         
         // Add user message
         const userMessage: ChatMessage = {
@@ -219,6 +343,16 @@ export const AiChatPage: React.FC = () => {
           selectedPdf || undefined
         );
         
+        // Check for subscription error first (before token error)
+        if (checkSubscriptionError(startResponse)) {
+          return;
+        }
+        
+        // Check for token error in response
+        if (checkTokenError(startResponse)) {
+          return;
+        }
+        
         setCurrentChat({
           id: startResponse.chat.id,
           messages: startResponse.chat.messages,
@@ -240,8 +374,21 @@ export const AiChatPage: React.FC = () => {
       
       // Reload chat history
       await loadChatHistory();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
+      
+      // Check if error response contains subscription error first
+      if (error.response?.data && checkSubscriptionError(error.response.data)) {
+        return;
+      }
+      
+      // Check if error response contains token expiration message
+      if (error.response?.data && checkTokenError(error.response.data)) {
+        return;
+      }
+      
+      setTokenErrorMessage('Failed to send message. Please try again.');
+      setShowTokenError(true);
     } finally {
       setIsTyping(false);
     }
@@ -414,12 +561,111 @@ export const AiChatPage: React.FC = () => {
     );
   };
 
+  const handleLogout = () => {
+    // Clear all session data
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    sessionStorage.clear();
+    
+    // Stop voice features
+    if (speechSynthesis) {
+      speechSynthesis.cancel();
+    }
+    if (speechRecognition && isRecording) {
+      speechRecognition.stop();
+    }
+    
+    // Redirect to signin
+    window.location.href = '/signin';
+  };
+
   return (
     <div className={`min-h-screen transition-all duration-500 ${
       isVoiceEnabled 
         ? 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50' 
         : 'bg-gradient-to-br from-purple-50 via-white to-pink-50'
     }`}>
+      {/* Token Error Modal */}
+      {showTokenError && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md mx-4 shadow-2xl">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Session Expired</h3>
+                <p className="text-sm text-gray-600">Your session has expired</p>
+              </div>
+            </div>
+            
+            <p className="text-gray-700 mb-6">
+              {tokenErrorMessage}
+            </p>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={handleLogout}
+                className="flex-1 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center space-x-2"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout Now</span>
+              </button>
+              <button
+                onClick={() => setShowTokenError(false)}
+                className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Wait
+              </button>
+            </div>
+            
+            <p className="text-xs text-gray-500 mt-3 text-center">
+              Redirecting to login page in 3 seconds...
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Subscription Required Modal */}
+      {showSubscriptionRequired && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md mx-4 shadow-2xl">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Subscription Required</h3>
+                <p className="text-sm text-gray-600">Upgrade your plan to continue</p>
+              </div>
+            </div>
+            
+            <p className="text-gray-700 mb-6">
+              {subscriptionMessage || 'You need an active subscription to use AI Chat features. Please upgrade your plan to continue.'}
+            </p>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={handleSubscribeClick}
+                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 flex items-center justify-center space-x-2"
+              >
+                <span>Subscribe Now</span>
+              </button>
+              <button
+                onClick={() => setShowSubscriptionRequired(false)}
+                className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+            
+            <p className="text-xs text-gray-500 mt-3 text-center">
+              Get access to unlimited AI conversations and features
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Header */}
       <div className="lg:hidden bg-white shadow-sm border-b border-gray-200">
         <div className="flex items-center justify-between p-4">
@@ -465,6 +711,13 @@ export const AiChatPage: React.FC = () => {
               className="p-2 rounded-lg bg-purple-100 hover:bg-purple-200 transition-colors"
             >
               <Plus className="h-5 w-5 text-purple-600" />
+            </button>
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-lg bg-red-100 hover:bg-red-200 transition-colors"
+              title="Logout"
+            >
+              <LogOut className="h-5 w-5 text-red-600" />
             </button>
           </div>
         </div>
@@ -519,6 +772,14 @@ export const AiChatPage: React.FC = () => {
               >
                 <Plus className="h-4 w-4" />
                 <span>New Chat</span>
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                title="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
               </button>
             </div>
           </div>
@@ -622,13 +883,22 @@ export const AiChatPage: React.FC = () => {
                   : 'bg-gradient-to-r from-purple-50 to-pink-50 border-gray-100'
               }`}>
                 <div className="flex items-center space-x-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    isVoiceEnabled 
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 animate-pulse shadow-lg' 
-                      : 'bg-gradient-to-r from-purple-500 to-pink-500'
-                  }`}>
-                    <Bot className="h-6 w-6 text-white" />
-                  </div>
+                  {isVoiceEnabled ? (
+                    <AnimatedCat 
+                      isVoiceEnabled={isVoiceEnabled}
+                      isSpeaking={isSpeaking}
+                      isRecording={isRecording}
+                      className="w-12 h-12"
+                    />
+                  ) : (
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                      isVoiceEnabled 
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 animate-pulse shadow-lg' 
+                        : 'bg-gradient-to-r from-purple-500 to-pink-500'
+                    }`}>
+                      <Bot className="h-6 w-6 text-white" />
+                    </div>
+                  )}
                   <div>
                     <h3 className="font-semibold text-gray-900">
                       {isVoiceEnabled ? 'Voice AI Assistant' : 'AI Tutor'}
@@ -674,15 +944,15 @@ export const AiChatPage: React.FC = () => {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
                     <p className="text-gray-500">Loading conversation...</p>
                   </div>
-                ) : currentChat?.messages.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 transition-all duration-500 ${
-                      isVoiceEnabled 
-                        ? 'bg-gradient-to-r from-blue-100 to-indigo-100 animate-pulse' 
-                        : 'bg-gradient-to-r from-purple-100 to-pink-100'
-                    }`}>
-                      <Bot className="h-10 w-10 text-purple-600" />
-                    </div>
+                                 ) : currentChat?.messages.length === 0 ? (
+                   <div className="text-center py-12">
+                     <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 transition-all duration-500 ${
+                       isVoiceEnabled 
+                         ? 'bg-gradient-to-r from-blue-100 to-indigo-100 animate-pulse' 
+                         : 'bg-gradient-to-r from-purple-100 to-pink-100'
+                     }`}>
+                       <Bot className="h-10 w-10 text-purple-600" />
+                     </div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">
                       {isVoiceEnabled ? 'Welcome to Voice AI Assistant!' : 'Welcome to AI Tutor!'}
                     </h3>
@@ -716,16 +986,16 @@ export const AiChatPage: React.FC = () => {
                   </div>
                 )}
 
-                {isTyping && (
-                  <div className="flex justify-start mb-4">
-                    <div className="flex items-end">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 mb-1 transition-all duration-300 ${
-                        isVoiceEnabled 
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 animate-pulse' 
-                          : 'bg-gradient-to-r from-purple-500 to-pink-500'
-                      }`}>
-                        <Bot className="h-4 w-4 text-white" />
-                      </div>
+                                 {isTyping && (
+                   <div className="flex justify-start mb-4">
+                     <div className="flex items-end">
+                       <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 mb-1 transition-all duration-300 ${
+                         isVoiceEnabled 
+                           ? 'bg-gradient-to-r from-blue-500 to-purple-600 animate-pulse' 
+                           : 'bg-gradient-to-r from-purple-500 to-pink-500'
+                       }`}>
+                         <Bot className="h-4 w-4 text-white" />
+                       </div>
                       <div className={`px-4 py-3 rounded-2xl rounded-bl-md shadow-sm border transition-all duration-300 ${
                         isVoiceEnabled 
                           ? 'bg-white border-blue-200 text-gray-800' 

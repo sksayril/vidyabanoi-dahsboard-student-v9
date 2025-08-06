@@ -14,10 +14,12 @@ import {
   QuizGenerationResponse,
   QuizSubmissionRequest,
   QuizSubmissionResponse,
-  UserQuizHistory
+  UserQuizHistory,
+  UserProfileResponse
 } from './types/api';
 
-const API_BASE_URL = 'https://api.vidyavani.com/api';
+// const API_BASE_URL = 'https://api.vidyavani.com/api';
+const API_BASE_URL = 'http://localhost:3330/api';
 
 // Subscription interfaces
 export interface CreateOrderRequest {
@@ -144,8 +146,20 @@ export class ApiService {
       ...options,
     });
 
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    // Handle both 200 and 201 as success status codes
+    if (!response.ok && response.status !== 201) {
+      // Try to parse error response
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+      }
+      
+      // Create error with response data for token handling
+      const error = new Error(`API request failed: ${response.status} ${response.statusText}`);
+      (error as any).response = { data: errorData, status: response.status };
+      throw error;
     }
 
     return response.json();
@@ -223,7 +237,18 @@ export class ApiService {
     });
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      // Try to parse error response
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+      }
+      
+      // Create error with response data for token handling
+      const error = new Error(`API request failed: ${response.status} ${response.statusText}`);
+      (error as any).response = { data: errorData, status: response.status };
+      throw error;
     }
 
     return response.json();
@@ -261,7 +286,18 @@ export class ApiService {
     });
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      // Try to parse error response
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+      }
+      
+      // Create error with response data for token handling
+      const error = new Error(`API request failed: ${response.status} ${response.statusText}`);
+      (error as any).response = { data: errorData, status: response.status };
+      throw error;
     }
 
     return response.json();
@@ -291,7 +327,18 @@ export class ApiService {
     });
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      // Try to parse error response
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+      }
+      
+      // Create error with response data for token handling
+      const error = new Error(`API request failed: ${response.status} ${response.statusText}`);
+      (error as any).response = { data: errorData, status: response.status };
+      throw error;
     }
 
     return response.json();
@@ -319,6 +366,10 @@ export class ApiService {
   static async getUserQuizHistory(): Promise<UserQuizHistory> {
     return this.makeRequest<UserQuizHistory>('/quiz/history');
   }
+
+  static async getUserProfile(): Promise<UserProfileResponse> {
+    return this.makeRequest<UserProfileResponse>('/users/profile');
+  }
 }
 
 // Export individual functions for easier use
@@ -341,4 +392,5 @@ export const getChat = (chatId: string) => ApiService.getChat(chatId);
 export const generateQuiz = (request: QuizGenerationRequest) => ApiService.generateQuiz(request);
 export const submitQuiz = (request: QuizSubmissionRequest) => ApiService.submitQuiz(request);
 export const getUserQuizHistory = () => ApiService.getUserQuizHistory();
-export const generateAIQuiz = (request: QuizGenerationRequest) => AIQuizService.generateQuiz(request); 
+export const generateAIQuiz = (request: QuizGenerationRequest) => AIQuizService.generateQuiz(request);
+export const getUserProfile = () => ApiService.getUserProfile(); 

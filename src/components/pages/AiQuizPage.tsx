@@ -24,12 +24,9 @@ import {
 import { 
   QuizGenerationRequest, 
   QuizGenerationResponse, 
-  QuizQuestion, 
-  QuizSubmissionRequest, 
-  QuizSubmissionResponse,
-  UserQuizHistory 
+  QuizQuestion
 } from '../../types/api';
-import { generateAIQuiz, submitQuiz, getUserQuizHistory } from '../../api';
+import { generateAIQuiz } from '../../api';
 
 type QuizState = 'topic-selection' | 'generating' | 'quiz-taking' | 'results';
 type ActiveTab = 'available' | 'completed' | 'history';
@@ -85,6 +82,22 @@ const QuizTimer: React.FC<{
   );
 };
 
+interface QuizResult {
+  score: number;
+  totalQuestions: number;
+  correctAnswers: number;
+  timeTaken: number;
+  completedAt: string;
+  answers: {
+    questionId: string;
+    selectedAnswer: number;
+    correctAnswer: number;
+    isCorrect: boolean;
+  }[];
+  performance: 'Excellent' | 'Good' | 'Needs Improvement';
+  feedback: string;
+}
+
 export const AiQuizPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('available');
   const [quizState, setQuizState] = useState<QuizState>('topic-selection');
@@ -94,8 +107,8 @@ export const AiQuizPage: React.FC = () => {
   const [currentQuiz, setCurrentQuiz] = useState<QuizGenerationResponse['quiz'] | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: number }>({});
-  const [quizResults, setQuizResults] = useState<QuizSubmissionResponse | null>(null);
-  const [quizHistory, setQuizHistory] = useState<UserQuizHistory | null>(null);
+  const [quizResults, setQuizResults] = useState<QuizResult | null>(null);
+  const [quizHistory, setQuizHistory] = useState<QuizResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [quizStartTime, setQuizStartTime] = useState<number>(0);
@@ -117,17 +130,27 @@ export const AiQuizPage: React.FC = () => {
     }
   }, [activeTab]);
 
-  const loadQuizHistory = async () => {
-    try {
-      setLoading(true);
-      const history = await getUserQuizHistory();
-      setQuizHistory(history);
-    } catch (err) {
-      console.error('Error loading quiz history:', err);
-      setError('Failed to load quiz history');
-    } finally {
-      setLoading(false);
+  const loadQuizHistory = () => {
+    // Load from localStorage
+    const savedHistory = localStorage.getItem('quizHistory');
+    if (savedHistory) {
+      try {
+        const history = JSON.parse(savedHistory);
+        setQuizHistory(history);
+      } catch (err) {
+        console.error('Error loading quiz history:', err);
+      }
     }
+  };
+
+  const saveQuizHistory = (result: QuizResult) => {
+    const currentHistory = localStorage.getItem('quizHistory');
+    let history = currentHistory ? JSON.parse(currentHistory) : [];
+    history.unshift(result);
+    // Keep only last 20 results
+    history = history.slice(0, 20);
+    localStorage.setItem('quizHistory', JSON.stringify(history));
+    setQuizHistory(history);
   };
 
   const handleTopicSelection = (topic: string) => {
@@ -185,34 +208,67 @@ export const AiQuizPage: React.FC = () => {
     setShowTimeUpModal(true);
   }, []);
 
-  const submitQuizAnswers = async (timeTaken?: number) => {
+  const calculateResults = (): QuizResult => {
+    if (!currentQuiz) throw new Error('No quiz available');
+
+    const answers = Object.entries(userAnswers).map(([questionId, selectedAnswer]) => {
+      const question = currentQuiz.questions.find(q => q.id === questionId);
+      const correctAnswer = question?.correctAnswer || 0;
+      return {
+        questionId,
+        selectedAnswer,
+        correctAnswer,
+        isCorrect: selectedAnswer === correctAnswer
+      };
+    });
+
+    const correctAnswers = answers.filter(a => a.isCorrect).length;
+    const totalQuestions = currentQuiz.questions.length;
+    const score = Math.round((correctAnswers / totalQuestions) * 100);
+    const timeTaken = Math.floor((Date.now() - quizStartTime) / 1000);
+
+    let performance: 'Excellent' | 'Good' | 'Needs Improvement';
+    let feedback: string;
+
+    if (score >= 90) {
+      performance = 'Excellent';
+      feedback = 'Outstanding performance! You have mastered this topic.';
+    } else if (score >= 70) {
+      performance = 'Good';
+      feedback = 'Good work! You have a solid understanding of this topic.';
+    } else {
+      performance = 'Needs Improvement';
+      feedback = 'Keep practicing! Review the material and try again.';
+    }
+
+    return {
+      score,
+      totalQuestions,
+      correctAnswers,
+      timeTaken,
+      completedAt: new Date().toISOString(),
+      answers,
+      performance,
+      feedback
+    };
+  };
+
+  const submitQuizAnswers = (timeTaken?: number) => {
     if (!currentQuiz) return;
 
     try {
-      setLoading(true);
+      const result = calculateResults();
+      if (timeTaken) {
+        result.timeTaken = timeTaken;
+      }
       
-      const answers = Object.entries(userAnswers).map(([questionId, selectedAnswer]) => ({
-        questionId,
-        selectedAnswer
-      }));
-
-      const actualTimeTaken = timeTaken || Math.floor((Date.now() - quizStartTime) / 1000);
-
-      const request: QuizSubmissionRequest = {
-        quizId: currentQuiz.id,
-        answers,
-        timeTaken: actualTimeTaken
-      };
-
-      const response = await submitQuiz(request);
-      setQuizResults(response);
+      setQuizResults(result);
+      saveQuizHistory(result);
       setQuizState('results');
       setShowTimeUpModal(false);
     } catch (err) {
-      console.error('Error submitting quiz:', err);
-      setError('Failed to submit quiz results');
-    } finally {
-      setLoading(false);
+      console.error('Error calculating results:', err);
+      setError('Failed to calculate quiz results');
     }
   };
 
@@ -247,9 +303,9 @@ export const AiQuizPage: React.FC = () => {
         <div className="flex items-center justify-center mb-4">
           <Brain className="h-12 w-12 text-orange-600 mr-3" />
           <h1 className="text-3xl font-bold text-white">AI Quiz Generator</h1>
-        </div>
+              </div>
         <p className="text-white text-lg">Choose a topic and let AI create a personalized quiz for you!</p>
-      </div>
+            </div>
 
       <div className="bg-white rounded-xl shadow-lg p-8">
         <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
@@ -328,7 +384,7 @@ export const AiQuizPage: React.FC = () => {
                   {level === 'Medium' && <Target className="h-4 w-4 mr-2" />}
                   {level === 'Hard' && <Trophy className="h-4 w-4 mr-2" />}
                   {level}
-                </div>
+            </div>
               </button>
             ))}
           </div>
@@ -368,7 +424,7 @@ export const AiQuizPage: React.FC = () => {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">{currentQuiz.title}</h2>
               <p className="text-gray-600">Question {currentQuestionIndex + 1} of {totalQuestions}</p>
@@ -397,7 +453,7 @@ export const AiQuizPage: React.FC = () => {
             <span>Progress: {currentQuestionIndex + 1}/{totalQuestions}</span>
             <span>Answered: {answeredQuestions}/{totalQuestions}</span>
           </div>
-        </div>
+              </div>
 
         <div className="bg-white rounded-xl shadow-lg p-8">
           <div className="mb-8">
@@ -425,9 +481,9 @@ export const AiQuizPage: React.FC = () => {
                       {userAnswers[currentQuestion.id] === index && (
                         <div className="w-2 h-2 bg-white rounded-full"></div>
                       )}
-                    </div>
+              </div>
                     <span className="font-medium">{option}</span>
-                  </div>
+              </div>
                 </button>
               ))}
             </div>
@@ -464,7 +520,7 @@ export const AiQuizPage: React.FC = () => {
               )}
             </div>
           </div>
-        </div>
+                </div>
 
         {/* Time Up Modal */}
         {showTimeUpModal && (
@@ -484,15 +540,14 @@ export const AiQuizPage: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-    );
+    </div>
+  );
   };
 
   const renderResults = () => {
     if (!quizResults || !currentQuiz) return null;
 
-    const { result, performance, feedback } = quizResults;
-    const percentage = Math.round((result.correctAnswers / result.totalQuestions) * 100);
+    const { score, correctAnswers, totalQuestions, timeTaken, performance, feedback, answers } = quizResults;
 
     return (
       <div className="max-w-4xl mx-auto space-y-8">
@@ -508,20 +563,20 @@ export const AiQuizPage: React.FC = () => {
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Quiz Complete!</h1>
           <p className="text-gray-600 text-lg">{feedback}</p>
-        </div>
-
+      </div>
+      
         <div className="bg-white rounded-xl shadow-lg p-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="text-center">
-              <div className="text-4xl font-bold text-orange-600 mb-2">{percentage}%</div>
+              <div className="text-4xl font-bold text-orange-600 mb-2">{score}%</div>
               <div className="text-gray-600">Score</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-green-600 mb-2">{result.correctAnswers}/{result.totalQuestions}</div>
+              <div className="text-4xl font-bold text-green-600 mb-2">{correctAnswers}/{totalQuestions}</div>
               <div className="text-gray-600">Correct Answers</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-blue-600 mb-2">{Math.round(result.timeTaken / 60)}m</div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">{Math.round(timeTaken / 60)}m</div>
               <div className="text-gray-600">Time Taken</div>
             </div>
           </div>
@@ -542,8 +597,8 @@ export const AiQuizPage: React.FC = () => {
           <div className="space-y-4">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Question Review</h3>
             {currentQuiz.questions.map((question, index) => {
-              const userAnswer = userAnswers[question.id];
-              const isCorrect = userAnswer === question.correctAnswer;
+              const answer = answers.find(a => a.questionId === question.id);
+              const isCorrect = answer?.isCorrect || false;
               
               return (
                 <div key={question.id} className="border border-gray-200 rounded-lg p-4">
@@ -565,7 +620,7 @@ export const AiQuizPage: React.FC = () => {
                         className={`p-2 rounded ${
                           optionIndex === question.correctAnswer
                             ? 'bg-green-100 text-green-800'
-                            : optionIndex === userAnswer && !isCorrect
+                            : optionIndex === answer?.selectedAnswer && !isCorrect
                             ? 'bg-red-100 text-red-800'
                             : 'bg-gray-50'
                         }`}
@@ -574,7 +629,7 @@ export const AiQuizPage: React.FC = () => {
                         {optionIndex === question.correctAnswer && (
                           <CheckCircle className="h-4 w-4 inline ml-2" />
                         )}
-                        {optionIndex === userAnswer && !isCorrect && (
+                        {optionIndex === answer?.selectedAnswer && !isCorrect && (
                           <XCircle className="h-4 w-4 inline ml-2" />
                         )}
                       </div>
@@ -635,11 +690,9 @@ export const AiQuizPage: React.FC = () => {
   );
 
   const renderHistory = () => {
-    if (!quizHistory) return null;
-
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">Quiz History</h2>
           <button
             onClick={() => setActiveTab('available')}
@@ -649,40 +702,46 @@ export const AiQuizPage: React.FC = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center">
               <BookOpen className="h-8 w-8 text-blue-600 mr-3" />
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{quizHistory.totalQuizzes}</p>
-                <p className="text-sm text-gray-600">Total Quizzes</p>
-              </div>
+            <div>
+                <p className="text-2xl font-bold text-gray-900">{quizHistory.length}</p>
+              <p className="text-sm text-gray-600">Total Quizzes</p>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center">
-              <CheckCircle className="h-8 w-8 text-green-600 mr-3" />
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{quizHistory.completedQuizzes.length}</p>
-                <p className="text-sm text-gray-600">Completed</p>
-              </div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center">
+            <CheckCircle className="h-8 w-8 text-green-600 mr-3" />
+            <div>
+                <p className="text-2xl font-bold text-gray-900">{quizHistory.length}</p>
+              <p className="text-sm text-gray-600">Completed</p>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center">
-              <Award className="h-8 w-8 text-yellow-600 mr-3" />
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{Math.round(quizHistory.averageScore)}%</p>
-                <p className="text-sm text-gray-600">Average Score</p>
-              </div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center">
+            <Award className="h-8 w-8 text-yellow-600 mr-3" />
+            <div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {quizHistory.length > 0 
+                    ? Math.round(quizHistory.reduce((sum, quiz) => sum + quiz.score, 0) / quizHistory.length)
+                    : 0}%
+                </p>
+              <p className="text-sm text-gray-600">Average Score</p>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center">
+        </div>
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center">
               <Clock className="h-8 w-8 text-purple-600 mr-3" />
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{Math.round(quizHistory.totalStudyTime / 60)}h</p>
-                <p className="text-sm text-gray-600">Study Time</p>
+            <div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {Math.round(quizHistory.reduce((sum, quiz) => sum + quiz.timeTaken, 0) / 60)}h
+                </p>
+              <p className="text-sm text-gray-600">Study Time</p>
               </div>
             </div>
           </div>
@@ -693,7 +752,7 @@ export const AiQuizPage: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-900">Recent Quizzes</h3>
           </div>
           <div className="divide-y divide-gray-200">
-            {quizHistory.completedQuizzes.map((quiz, index) => (
+            {quizHistory.map((quiz, index) => (
               <div key={index} className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -707,6 +766,11 @@ export const AiQuizPage: React.FC = () => {
                 </div>
               </div>
             ))}
+            {quizHistory.length === 0 && (
+              <div className="p-6 text-center text-gray-500">
+                No quiz history yet. Take your first quiz to see your results here!
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LogOut, BookOpen, User, Trophy, Calendar, Bell, Search, Menu, X,
   MessageCircle, Brain, CreditCard, Home, ChevronRight
@@ -24,6 +24,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUserData, setCurrentUserData] = useState(userData);
+
+  // Handle URL parameters for tab navigation
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    
+    if (tabParam && ['dashboard', 'learning', 'ai-chat', 'ai-quiz', 'subscription', 'profile'].includes(tabParam)) {
+      setActiveTab(tabParam as ActiveTab);
+      
+      // Clean up the URL parameter
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, color: 'text-blue-600' },
@@ -63,7 +77,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardPage user={user} userData={currentUserData} />;
+        return (
+          <DashboardPage 
+            user={user} 
+            userData={currentUserData} 
+            onNavigateToLearning={() => setActiveTab('learning')}
+            onNavigateToSubscription={() => setActiveTab('subscription')}
+            onNavigateToQuiz={() => setActiveTab('ai-quiz')}
+            onNavigateToChat={() => setActiveTab('ai-chat')}
+          />
+        );
       case 'learning':
         return <LearningPage userData={currentUserData} onNavigateToSubscription={() => setActiveTab('subscription')} />;
       case 'ai-chat':
@@ -75,40 +98,70 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
       case 'profile':
         return <ProfilePage user={user} onLogout={onLogout} />;
       default:
-        return <DashboardPage user={user} userData={currentUserData} />;
+        return (
+          <DashboardPage 
+            user={user} 
+            userData={currentUserData} 
+            onNavigateToLearning={() => setActiveTab('learning')}
+            onNavigateToSubscription={() => setActiveTab('subscription')}
+            onNavigateToQuiz={() => setActiveTab('ai-quiz')}
+            onNavigateToChat={() => setActiveTab('ai-chat')}
+          />
+        );
     }
   };
 
   return (
     <div className="min-h-screen bg-transparent">
       {/* Header */}
-      <header className="bg-gray-800/90 backdrop-blur-md shadow-lg border-b border-gray-700">
+      <header className="bg-gradient-to-r from-blue-900/95 via-purple-900/95 to-indigo-900/95 backdrop-blur-xl shadow-2xl border-b border-blue-500/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-20">
             {/* Logo and Sidebar Toggle */}
             <div className="flex items-center">
               <button
                 onClick={toggleSidebar}
-                className="hidden lg:block p-2 text-gray-400 hover:text-gray-200 mr-4"
+                className="hidden lg:block p-2 text-blue-300 hover:text-blue-100 mr-4 transition-all duration-200 hover:bg-blue-500/20 rounded-lg"
               >
                 <Menu className="h-6 w-6" />
               </button>
-              <BookOpen className="h-8 w-8 text-blue-400 mr-3" />
-              <h1 className="text-2xl font-bold text-white">Vidyabani</h1>
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 p-1 shadow-lg">
+                    <img 
+                      src="/image.png" 
+                      alt="Vidyabani Logo" 
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-pulse"></div>
+                </div>
+                <div className="flex flex-col">
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
+                    Vidyabani
+                  </h1>
+                  <p className="text-xs text-blue-200 font-medium">Learning Platform</p>
+                </div>
+              </div>
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-4">
-              <button className="p-2 text-gray-400 hover:text-gray-200">
+            <div className="hidden md:flex items-center space-x-6">
+              <button className="relative p-3 text-blue-200 hover:text-white transition-all duration-200 hover:bg-blue-500/20 rounded-xl group">
                 <Bell className="h-6 w-6" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/10 group-hover:to-purple-500/10 rounded-xl transition-all duration-200"></div>
               </button>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-4">
                 <div className="text-right">
                   <p className="text-sm font-medium text-white">{user.name}</p>
-                  <p className="text-xs text-gray-300">{user.email}</p>
+                  <p className="text-xs text-blue-200">{user.email}</p>
                 </div>
-                <div className="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center">
-                  <User className="h-5 w-5 text-white" />
+                <div className="relative">
+                  <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                    <User className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-blue-900"></div>
                 </div>
               </div>
             </div>
@@ -117,7 +170,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
             <div className="md:hidden">
               <button
                 onClick={toggleMobileMenu}
-                className="p-2 text-gray-400 hover:text-gray-200"
+                className="p-3 text-blue-200 hover:text-white transition-all duration-200 hover:bg-blue-500/20 rounded-xl"
               >
                 {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
@@ -127,20 +180,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-gray-800/95 border-t border-gray-700">
-            <div className="px-4 py-3 space-y-3">
-              <div className="flex items-center space-x-3">
-                <div className="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center">
-                  <User className="h-5 w-5 text-white" />
+          <div className="md:hidden bg-gradient-to-b from-blue-900/95 to-purple-900/95 border-t border-blue-500/30 backdrop-blur-xl">
+            <div className="px-4 py-4 space-y-4">
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                    <User className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-blue-900"></div>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-white">{user.name}</p>
-                  <p className="text-xs text-gray-300">{user.email}</p>
+                  <p className="text-xs text-blue-200">{user.email}</p>
                 </div>
               </div>
               <button
                 onClick={onLogout}
-                className="flex items-center space-x-2 text-gray-300 hover:text-white w-full"
+                className="flex items-center space-x-3 text-blue-200 hover:text-white w-full p-3 rounded-xl hover:bg-blue-500/20 transition-all duration-200"
               >
                 <LogOut className="h-5 w-5" />
                 <span>Logout</span>

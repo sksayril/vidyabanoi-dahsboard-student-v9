@@ -46,6 +46,22 @@ export interface User {
   subscription?: Subscription;
 }
 
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  subscription: {
+    isActive: boolean;
+    plan: string;
+    endDate: string;
+  };
+}
+
+export interface UserProfileResponse {
+  user: UserProfile;
+}
+
 export interface RegisterRequest {
   name: string;
   email: string;
@@ -56,16 +72,7 @@ export interface RegisterRequest {
 }
 
 export interface RegisterResponse {
-  success: boolean;
   message: string;
-  user?: {
-    _id: string;
-    name: string;
-    email: string;
-    phone: string;
-    parentCategoryId: string;
-    subCategoryId: string;
-  };
 }
 
 export interface LoginRequest {
