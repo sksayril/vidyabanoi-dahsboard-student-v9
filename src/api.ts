@@ -18,8 +18,8 @@ import {
   UserProfileResponse
 } from './types/api';
 
-// const API_BASE_URL = 'https://api.vidyavani.com/api';
-const API_BASE_URL = 'http://localhost:3330/api';
+const API_BASE_URL = 'https://api.vidyavani.com/api';
+// const API_BASE_URL = 'http://localhost:3330/api';
 
 // Subscription interfaces
 export interface CreateOrderRequest {
