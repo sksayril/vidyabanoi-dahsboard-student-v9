@@ -134,24 +134,24 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 p-2 sm:p-4 lg:p-8">
+    <div className="min-h-screen bg-transparent p-2 sm:p-4 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Header and Tabs */}
-        <div className="bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/30 p-4 sm:p-6 lg:p-8">
+        <div className="notebook-card p-4 sm:p-6 lg:p-8">
           <div className="flex flex-col items-start justify-between">
             <div className="w-full mb-4 sm:mb-0">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-2">
-                My Profile 🎉
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold notebook-heading mb-2">
+                My Profile 🌍
               </h1>
-              <p className="text-gray-600 text-base sm:text-lg lg:text-xl">Manage your account and track your progress! ✨</p>
+              <p className="notebook-text text-base sm:text-lg lg:text-xl">Manage your account and track your progress! ✨</p>
             </div>
-            <div className="flex flex-wrap gap-2 p-2 bg-gradient-to-r from-purple-100/50 to-pink-100/50 rounded-2xl sm:rounded-3xl backdrop-blur-sm w-full">
+            <div className="flex flex-wrap gap-2 p-2 bg-gray-100 rounded-2xl sm:rounded-3xl w-full">
               <button
                 onClick={() => setActiveTab('profile')}
                 className={`flex-1 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all duration-500 ${
                   activeTab === 'profile'
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-2xl transform scale-105'
-                    : 'text-gray-600 hover:text-purple-600 hover:bg-white/60'
+                    ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-2xl transform scale-105'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-white/60'
                 }`}
               >
                 Profile
@@ -160,42 +160,32 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
                 onClick={() => setActiveTab('settings')}
                 className={`flex-1 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all duration-500 ${
                   activeTab === 'settings'
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-2xl transform scale-105'
-                    : 'text-gray-600 hover:text-purple-600 hover:bg-white/60'
+                    ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-2xl transform scale-105'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-white/60'
                 }`}
               >
                 Settings
               </button>
-              {/* <button
-                onClick={() => setActiveTab('security')}
-                className={`flex-1 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all duration-500 ${
-                  activeTab === 'security'
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-2xl transform scale-105'
-                    : 'text-gray-600 hover:text-purple-600 hover:bg-white/60'
-                }`}
-              >
-                Security
-              </button> */}
             </div>
           </div>
         </div>
 
         {/* Loading State */}
         {isLoading && (
-          <div className="bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/30 p-6 sm:p-8 lg:p-12">
+          <div className="notebook-card p-6 sm:p-8 lg:p-12">
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
               <div className="relative">
-                <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 lg:h-20 lg:w-20 border-4 border-purple-200 border-t-purple-600"></div>
-                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-pink-500 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 lg:h-20 lg:w-20 border-4 border-blue-200 border-t-blue-600"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-green-500 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
               </div>
-              <span className="text-gray-700 text-lg sm:text-xl lg:text-2xl font-bold text-center sm:text-left">Loading your profile... ✨</span>
+              <span className="notebook-text text-lg sm:text-xl lg:text-2xl font-bold text-center sm:text-left">Loading your profile... ✨</span>
             </div>
           </div>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="bg-gradient-to-r from-red-50/90 to-red-50/70 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-red-200 p-4 sm:p-6 lg:p-8">
+          <div className="bg-red-50 rounded-2xl sm:rounded-3xl shadow-2xl border border-red-200 p-4 sm:p-6 lg:p-8">
             <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-red-400 to-red-600 rounded-full flex items-center justify-center shadow-lg">
                 <X className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
@@ -220,23 +210,23 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
             {activeTab === 'profile' && (
               <div className="space-y-4 sm:space-y-6 lg:space-y-8">
                 {/* Profile Header Card */}
-                <div className="bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
-                  <div className="h-32 sm:h-40 lg:h-48 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20"></div>
+                <div className="notebook-card overflow-hidden">
+                  <div className="h-32 sm:h-40 lg:h-48 bg-gradient-to-r from-blue-500 via-green-500 to-blue-600 relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-green-600/20"></div>
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/10"></div>
                     <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
                       <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                        <span className="text-white text-xs sm:text-sm">✨</span>
+                        <span className="text-white text-xs sm:text-sm">🌍</span>
                       </div>
                     </div>
                   </div>
                   <div className="px-4 sm:px-6 lg:px-10 pb-6 sm:pb-8 lg:pb-10">
                     <div className="flex flex-col sm:flex-row items-center sm:items-end space-y-4 sm:space-y-0 sm:space-x-4 lg:space-x-8 -mt-16 sm:-mt-20 lg:-mt-24">
                       <div className="relative group">
-                        <div className="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 rounded-full flex items-center justify-center border-4 sm:border-6 lg:border-8 border-white shadow-2xl group-hover:border-purple-200 transition-all duration-500 transform group-hover:scale-110 group-hover:shadow-3xl">
+                        <div className="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 bg-gradient-to-r from-blue-100 via-green-100 to-blue-100 rounded-full flex items-center justify-center border-4 sm:border-6 lg:border-8 border-white shadow-2xl group-hover:border-blue-200 transition-all duration-500 transform group-hover:scale-110 group-hover:shadow-3xl">
                           <span className="text-6xl sm:text-7xl lg:text-9xl animate-pulse">{userAvatar}</span>
                         </div>
-                        <button className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110">
+                        <button className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110">
                           <Camera className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7" />
                         </button>
                         <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
@@ -246,9 +236,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
                       <div className="flex-1 w-full sm:w-auto">
                         <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between space-y-4 sm:space-y-0">
                           <div className="text-center sm:text-left w-full sm:w-auto">
-                            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-gray-800 mb-2 sm:mb-3 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{profileData.name}</h2>
+                            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold notebook-heading mb-2 sm:mb-3">{profileData.name}</h2>
                             <div className="space-y-1 sm:space-y-2">
-                              <p className="text-gray-600 text-sm sm:text-base lg:text-xl flex items-center justify-center sm:justify-start">
+                              <p className="notebook-text text-sm sm:text-base lg:text-xl flex items-center justify-center sm:justify-start">
                                 <span className="mr-2 sm:mr-3">📧</span>
                                 <span className="break-all">{profileData.email}</span>
                               </p>
@@ -260,7 +250,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
                           </div>
                           <button
                             onClick={() => setIsEditing(!isEditing)}
-                            className="p-2 sm:p-3 lg:p-4 text-gray-400 hover:text-purple-600 transition-all duration-300 hover:bg-purple-50 rounded-xl sm:rounded-2xl group"
+                            className="p-2 sm:p-3 lg:p-4 text-gray-400 hover:text-blue-600 transition-all duration-300 hover:bg-blue-50 rounded-xl sm:rounded-2xl group"
                           >
                             <Edit className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 group-hover:scale-110 transition-transform duration-300" />
                           </button>
@@ -288,13 +278,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
                 </div>
 
                 {/* Profile Information */}
-                <div className="bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/30 p-4 sm:p-6 lg:p-10">
+                <div className="notebook-card p-4 sm:p-6 lg:p-10">
                   <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between mb-6 sm:mb-8 lg:mb-10 space-y-4 sm:space-y-0">
                     <div className="flex items-center space-x-3 sm:space-x-4">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
                         <span className="text-white text-lg sm:text-xl">📋</span>
                       </div>
-                      <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">Personal Information</h3>
+                      <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold notebook-heading">Personal Information</h3>
                     </div>
                     {isEditing && (
                       <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
@@ -336,14 +326,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
                   {settingsOptions.map((option, index) => {
                     const Icon = option.icon;
                     return (
-                      <div key={index} className="bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/30 p-4 sm:p-6 lg:p-8 hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 sm:hover:-translate-y-3 cursor-pointer group" style={{ animationDelay: `${index * 100}ms` }}>
+                      <div key={index} className="notebook-card p-4 sm:p-6 lg:p-8 hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 sm:hover:-translate-y-3 cursor-pointer group" style={{ animationDelay: `${index * 100}ms` }}>
                         <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-3 sm:space-y-0 sm:space-x-4 lg:space-x-6">
                           <div className={`w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 p-3 sm:p-4 lg:p-6 rounded-2xl sm:rounded-3xl ${option.bgColor} shadow-xl group-hover:shadow-2xl transition-all duration-500 group-hover:scale-110`}>
                             <Icon className={`h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 ${option.color}`} />
                           </div>
                           <div className="flex-1 text-center sm:text-left">
-                            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">{option.title}</h3>
-                            <p className="text-gray-600 text-sm sm:text-base lg:text-lg">{option.description}</p>
+                            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold notebook-heading mb-2 sm:mb-3">{option.title}</h3>
+                            <p className="notebook-text text-sm sm:text-base lg:text-lg">{option.description}</p>
                           </div>
                         </div>
                       </div>
@@ -352,12 +342,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
                 </div>
 
                 {/* Notification Settings */}
-                <div className="bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/30 p-4 sm:p-6 lg:p-10">
+                <div className="notebook-card p-4 sm:p-6 lg:p-10">
                   <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 mb-6 sm:mb-8 lg:mb-10">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
                       <span className="text-white text-lg sm:text-xl">🔔</span>
                     </div>
-                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">Notification Preferences</h3>
+                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold notebook-heading">Notification Preferences</h3>
                   </div>
                   <div className="space-y-4 sm:space-y-6">
                     {[
@@ -365,14 +355,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
                       { title: 'Push Notifications', desc: 'Receive push notifications on your devices', checked: true },
                       { title: 'Study Reminders', desc: 'Get reminded about study sessions', checked: false },
                     ].map((item, index) => (
-                      <div key={item.title} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 bg-gradient-to-r from-purple-50/50 to-pink-50/50 rounded-2xl sm:rounded-3xl border border-purple-100/50 hover:shadow-lg transition-all duration-300 group space-y-3 sm:space-y-0" style={{ animationDelay: `${index * 150}ms` }}>
+                      <div key={item.title} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 bg-gray-50 rounded-2xl sm:rounded-3xl border border-gray-200 hover:shadow-lg transition-all duration-300 group space-y-3 sm:space-y-0" style={{ animationDelay: `${index * 150}ms` }}>
                         <div className="flex-1">
-                          <p className="font-bold text-gray-800 text-base sm:text-lg lg:text-xl mb-1">{item.title}</p>
-                          <p className="text-gray-600 text-sm sm:text-base lg:text-lg">{item.desc}</p>
+                          <p className="font-bold notebook-text text-base sm:text-lg lg:text-xl mb-1">{item.title}</p>
+                          <p className="notebook-text text-sm sm:text-base lg:text-lg">{item.desc}</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" className="sr-only peer" defaultChecked={item.checked} />
-                          <div className="w-12 h-6 sm:w-14 sm:h-7 lg:w-16 lg:h-8 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 sm:after:h-6 sm:after:w-6 lg:after:h-7 lg:after:w-7 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-purple-500 peer-checked:to-pink-500 group-hover:shadow-lg transition-all duration-300"></div>
+                          <div className="w-12 h-6 sm:w-14 sm:h-7 lg:w-16 lg:h-8 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 sm:after:h-6 sm:after:w-6 lg:after:h-7 lg:after:w-7 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-blue-500 peer-checked:to-green-500 group-hover:shadow-lg transition-all duration-300"></div>
                         </label>
                       </div>
                     ))}
@@ -383,46 +373,46 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
 
             {activeTab === 'security' && (
               <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-                <div className="bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/30 p-4 sm:p-6 lg:p-10">
+                <div className="notebook-card p-4 sm:p-6 lg:p-10">
                   <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 mb-6 sm:mb-8 lg:mb-10">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
                       <span className="text-white text-lg sm:text-xl">🔐</span>
                     </div>
-                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">Security Settings</h3>
+                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold notebook-heading">Security Settings</h3>
                   </div>
                   <div className="space-y-4 sm:space-y-6">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 lg:p-8 border border-gray-200 rounded-2xl sm:rounded-3xl hover:bg-gradient-to-r hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-500 group space-y-4 sm:space-y-0">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 lg:p-8 border border-gray-200 rounded-2xl sm:rounded-3xl hover:bg-gray-50 transition-all duration-500 group space-y-4 sm:space-y-0">
                       <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 lg:space-x-6">
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-r from-purple-400 to-purple-600 rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-r from-blue-400 to-blue-600 rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110">
                           <KeyRound className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-white" />
                         </div>
                         <div className="text-center sm:text-left">
-                          <p className="font-bold text-gray-800 text-lg sm:text-xl lg:text-2xl mb-1 sm:mb-2">Change Password</p>
-                          <p className="text-gray-600 text-sm sm:text-base lg:text-lg">Update your account password for enhanced security.</p>
+                          <p className="font-bold notebook-text text-lg sm:text-xl lg:text-2xl mb-1 sm:mb-2">Change Password</p>
+                          <p className="notebook-text text-sm sm:text-base lg:text-lg">Update your account password for enhanced security.</p>
                         </div>
                       </div>
-                      <button className="w-full sm:w-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl sm:rounded-2xl hover:from-purple-600 hover:to-pink-600 transition-all duration-300 font-bold text-sm sm:text-base lg:text-lg shadow-xl hover:shadow-2xl transform hover:scale-105">Change</button>
+                      <button className="w-full sm:w-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-xl sm:rounded-2xl hover:from-blue-600 hover:to-green-600 transition-all duration-300 font-bold text-sm sm:text-base lg:text-lg shadow-xl hover:shadow-2xl transform hover:scale-105">Change</button>
                     </div>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 lg:p-8 border border-gray-200 rounded-2xl sm:rounded-3xl hover:bg-gradient-to-r hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-500 group space-y-4 sm:space-y-0">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 lg:p-8 border border-gray-200 rounded-2xl sm:rounded-3xl hover:bg-gray-50 transition-all duration-500 group space-y-4 sm:space-y-0">
                       <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 lg:space-x-6">
                         <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-r from-blue-400 to-blue-600 rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110">
                           <Shield className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-white" />
                         </div>
                         <div className="text-center sm:text-left">
-                          <p className="font-bold text-gray-800 text-lg sm:text-xl lg:text-2xl mb-1 sm:mb-2">Two-Factor Authentication</p>
-                          <p className="text-gray-600 text-sm sm:text-base lg:text-lg">Add an extra layer of security to your account.</p>
+                          <p className="font-bold notebook-text text-lg sm:text-xl lg:text-2xl mb-1 sm:mb-2">Two-Factor Authentication</p>
+                          <p className="notebook-text text-sm sm:text-base lg:text-lg">Add an extra layer of security to your account.</p>
                         </div>
                       </div>
                       <button className="w-full sm:w-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 bg-gray-100 text-gray-700 rounded-xl sm:rounded-2xl hover:bg-gray-200 transition-all duration-300 font-bold text-sm sm:text-base lg:text-lg">Enable</button>
                     </div>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 lg:p-8 border border-gray-200 rounded-2xl sm:rounded-3xl hover:bg-gradient-to-r hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-500 group space-y-4 sm:space-y-0">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 lg:p-8 border border-gray-200 rounded-2xl sm:rounded-3xl hover:bg-gray-50 transition-all duration-500 group space-y-4 sm:space-y-0">
                       <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 lg:space-x-6">
                         <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-r from-green-400 to-green-600 rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110">
                           <History className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-white" />
                         </div>
                         <div className="text-center sm:text-left">
-                          <p className="font-bold text-gray-800 text-lg sm:text-xl lg:text-2xl mb-1 sm:mb-2">Login History</p>
-                          <p className="text-gray-600 text-sm sm:text-base lg:text-lg">View your recent login activity.</p>
+                          <p className="font-bold notebook-text text-lg sm:text-xl lg:text-2xl mb-1 sm:mb-2">Login History</p>
+                          <p className="notebook-text text-sm sm:text-base lg:text-lg">View your recent login activity.</p>
                         </div>
                       </div>
                       <button className="w-full sm:w-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 bg-gray-100 text-gray-700 rounded-xl sm:rounded-2xl hover:bg-gray-200 transition-all duration-300 font-bold text-sm sm:text-base lg:text-lg">View</button>
@@ -431,7 +421,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
                 </div>
 
                 {/* Danger Zone */}
-                <div className="bg-gradient-to-r from-red-50/90 to-red-50/70 backdrop-blur-xl border border-red-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-10">
+                <div className="bg-red-50 border border-red-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-10">
                   <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 mb-6 sm:mb-8">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-red-400 to-red-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
                       <span className="text-white text-lg sm:text-xl">⚠️</span>
@@ -460,7 +450,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
         <div className="text-center">
           <button
             onClick={onLogout}
-            className="w-full sm:w-auto flex items-center justify-center space-x-3 sm:space-x-4 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-xl border border-white/30 text-gray-600 rounded-2xl sm:rounded-3xl hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-500 group shadow-2xl hover:shadow-3xl transform hover:scale-105"
+            className="w-full sm:w-auto flex items-center justify-center space-x-3 sm:space-x-4 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 notebook-card border border-gray-200 text-gray-600 rounded-2xl sm:rounded-3xl hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-500 group shadow-2xl hover:shadow-3xl transform hover:scale-105"
           >
             <LogOut className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-gray-500 group-hover:text-white transition-colors" />
             <span className="font-bold text-base sm:text-lg lg:text-xl">Sign Out</span>

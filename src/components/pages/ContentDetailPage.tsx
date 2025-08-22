@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Play, Download, FileText, Image, Video, BookOpen, ChevronRight, X, Maximize2, Minimize2, Eye, Star, Rocket, Heart, Sparkles, GraduationCap, Award, Crown, Lock, Gift } from 'lucide-react';
+import { ArrowLeft, Play, Download, FileText, Image, Video, BookOpen, ChevronRight, X, Maximize2, Minimize2, Eye, Star, Rocket, Heart, Sparkles, GraduationCap, Award, Crown, Lock, Gift, Check } from 'lucide-react';
 import { getSubcategories } from '../../api';
 import { SubcategoriesResponse, User } from '../../types/api';
 
@@ -64,6 +64,9 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
     setDeepLoading(true);
     setDeepError('');
     
+    // Track learning activity in localStorage
+    trackLearningActivity(contentId, contentName, 'opened');
+    
     try {
       const data = await getSubcategories(contentId);
       setDeepContent(data);
@@ -72,6 +75,201 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
       setDeepError('Failed to load learning content. Please try again.');
     } finally {
       setDeepLoading(false);
+    }
+  };
+
+  // Track learning activity in localStorage
+  const trackLearningActivity = (contentId: string, contentName: string, action: 'opened' | 'completed' | 'bookmarked') => {
+    try {
+      const learningHistory = JSON.parse(localStorage.getItem('learningHistory') || '[]');
+      const existingEntry = learningHistory.find((entry: any) => entry.contentId === contentId);
+      
+      if (existingEntry) {
+        // Update existing entry
+        existingEntry.lastAccessed = new Date().toISOString();
+        existingEntry.accessCount = (existingEntry.accessCount || 0) + 1;
+        if (action === 'completed') existingEntry.completed = true;
+        if (action === 'bookmarked') existingEntry.bookmarked = !existingEntry.bookmarked;
+      } else {
+        // Create new entry
+        learningHistory.push({
+          contentId,
+          contentName,
+          subcategoryId,
+          subcategoryName,
+          mainCategory: (userData as any)?.parentCategory?.name || 'Unknown',
+          firstAccessed: new Date().toISOString(),
+          lastAccessed: new Date().toISOString(),
+          accessCount: 1,
+          completed: action === 'completed',
+          bookmarked: action === 'bookmarked',
+          progress: 0
+        });
+      }
+      
+      // Keep only last 50 entries to prevent localStorage from getting too large
+      if (learningHistory.length > 50) {
+        learningHistory.splice(0, learningHistory.length - 50);
+      }
+      
+      localStorage.setItem('learningHistory', JSON.stringify(learningHistory));
+    } catch (error) {
+      console.error('Error saving learning activity:', error);
+    }
+  };
+
+  // Handle content focus with tracking
+  const handleContentFocus = (item: any) => {
+    setFocusedItem(item);
+    // Track when user opens specific study material
+    trackLearningActivity(item._id || item.id, item.name, 'opened');
+  };
+
+  // Mark content as completed
+  const markContentCompleted = (contentId: string, contentName: string) => {
+    trackLearningActivity(contentId, contentName, 'completed');
+    // Update progress in localStorage
+    updateProgress(contentId, 100);
+  };
+
+  // Update progress for content
+  const updateProgress = (contentId: string, progress: number) => {
+    try {
+      const learningHistory = JSON.parse(localStorage.getItem('learningHistory') || '[]');
+      const entry = learningHistory.find((entry: any) => entry.contentId === contentId);
+      
+      if (entry) {
+        entry.progress = Math.max(entry.progress || 0, progress);
+        entry.lastAccessed = new Date().toISOString();
+        localStorage.setItem('learningHistory', JSON.stringify(learningHistory));
+      }
+    } catch (error) {
+      console.error('Error updating progress:', error);
+    }
+  };
+
+  // Update progress based on active tab
+  const updateProgressForTab = (tab: ContentTab) => {
+    if (!focusedItem) return;
+    
+    let progress = 0;
+    switch (tab) {
+      case 'images':
+        progress = 25;
+        break;
+      case 'text':
+        progress = 50;
+        break;
+      case 'video':
+        progress = 75;
+        break;
+      case 'pdf':
+        progress = 100;
+        break;
+    }
+    
+    updateProgress(focusedItem._id || focusedItem.id, progress);
+  };
+
+  // Track content interaction for better progress
+  const trackContentInteraction = (contentId: string, interactionType: 'viewed' | 'read' | 'watched' | 'downloaded') => {
+    try {
+      const learningHistory = JSON.parse(localStorage.getItem('learningHistory') || '[]');
+      const entry = learningHistory.find((entry: any) => entry.contentId === contentId);
+      
+      if (entry) {
+        // Update progress based on interaction type
+        let newProgress = entry.progress || 0;
+        switch (interactionType) {
+          case 'viewed':
+            newProgress = Math.max(newProgress, 25);
+            break;
+          case 'read':
+            newProgress = Math.max(newProgress, 50);
+            break;
+          case 'watched':
+            newProgress = Math.max(newProgress, 75);
+            break;
+          case 'downloaded':
+            newProgress = Math.max(newProgress, 90);
+            break;
+        }
+        
+        entry.progress = newProgress;
+        entry.lastAccessed = new Date().toISOString();
+        localStorage.setItem('learningHistory', JSON.stringify(learningHistory));
+      }
+    } catch (error) {
+      console.error('Error tracking content interaction:', error);
+    }
+  };
+
+  // Handle tab change with progress tracking
+  const handleTabChange = (tab: ContentTab) => {
+    setActiveTab(tab);
+    updateProgressForTab(tab);
+    
+    // Track content interaction based on tab
+    if (focusedItem) {
+      const contentId = focusedItem._id || focusedItem.id;
+      switch (tab) {
+        case 'images':
+          trackContentInteraction(contentId, 'viewed');
+          break;
+        case 'text':
+          trackContentInteraction(contentId, 'read');
+          break;
+        case 'video':
+          trackContentInteraction(contentId, 'watched');
+          break;
+        case 'pdf':
+          trackContentInteraction(contentId, 'downloaded');
+          break;
+      }
+    }
+  };
+
+  // Track content interaction when tab content is viewed
+  useEffect(() => {
+    if (focusedItem && activeTab) {
+      const contentId = focusedItem._id || focusedItem.id;
+      // Add a small delay to ensure the content is actually loaded
+      const timer = setTimeout(() => {
+        switch (activeTab) {
+          case 'images':
+            trackContentInteraction(contentId, 'viewed');
+            break;
+          case 'text':
+            trackContentInteraction(contentId, 'read');
+            break;
+          case 'video':
+            trackContentInteraction(contentId, 'watched');
+            break;
+          case 'pdf':
+            trackContentInteraction(contentId, 'downloaded');
+            break;
+        }
+      }, 1000); // 1 second delay
+      
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab, focusedItem]);
+
+  // Toggle bookmark for content
+  const toggleBookmark = (contentId: string, contentName: string) => {
+    trackLearningActivity(contentId, contentName, 'bookmarked');
+  };
+
+  // Get current progress for focused item
+  const getCurrentProgress = (): number => {
+    if (!focusedItem) return 0;
+    
+    try {
+      const learningHistory = JSON.parse(localStorage.getItem('learningHistory') || '[]');
+      const entry = learningHistory.find((entry: any) => entry.contentId === (focusedItem._id || focusedItem.id));
+      return entry?.progress || 0;
+    } catch (error) {
+      return 0;
     }
   };
 
@@ -144,6 +342,9 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
   // Handle focus on specific item
   const handleFocusItem = (item: any) => {
     setFocusedItem(item);
+    // Track when user opens specific study material
+    trackLearningActivity(item._id || item.id, item.name, 'opened');
+    
     // Set default tab based on available content
     if (item.content?.imageUrls && item.content.imageUrls.length > 0) {
       setActiveTab('images');
@@ -816,34 +1017,69 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
   // If focused item is selected, show the detailed tabbed view
   if (focusedItem) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setFocusedItem(null)}
-              className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">{focusedItem.name}</h2>
-              <p className="text-gray-600">Study Materials</p>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{focusedItem.name}</h2>
+              <p className="text-gray-600 text-sm">Study Materials</p>
             </div>
           </div>
-          {/* Subscription Status */}
-          <div className="flex items-center space-x-2">
-            {hasActiveSubscription() ? (
-              <div className="flex items-center space-x-1 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
-                <Crown className="h-4 w-4" />
-                <span>Premium Active</span>
+          
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+            {/* Progress Indicator */}
+            <div className="flex items-center justify-center sm:justify-start space-x-2 px-3 py-2 sm:py-1 bg-gray-100 rounded-lg">
+              <span className="text-xs text-gray-600 font-medium">Progress</span>
+              <div className="w-16 bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${getCurrentProgress()}%` }}
+                ></div>
               </div>
-            ) : (
-              <div className="flex items-center space-x-1 bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">
-                <Lock className="h-4 w-4" />
-                <span>Free Plan</span>
-              </div>
-            )}
+              <span className="text-xs text-gray-600 font-medium">{getCurrentProgress()}%</span>
+            </div>
+            
+            {/* Bookmark Button */}
+            <button
+              onClick={() => toggleBookmark(focusedItem._id || focusedItem.id, focusedItem.name)}
+              className="p-2 text-gray-400 hover:text-yellow-500 rounded-lg hover:bg-yellow-50 transition-colors flex-shrink-0"
+              title="Bookmark this content"
+            >
+              <Star className="h-5 w-5" />
+            </button>
+            
+            {/* Mark as Complete Button */}
+            <button
+              onClick={() => markContentCompleted(focusedItem._id || focusedItem.id, focusedItem.name)}
+              className="px-3 sm:px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-2 flex-shrink-0"
+              title="Mark as completed"
+            >
+              <Check className="h-4 w-4" />
+              <span className="text-sm font-medium">Complete</span>
+            </button>
+            
+            {/* Subscription Status */}
+            <div className="flex items-center justify-center sm:justify-start space-x-2">
+              {hasActiveSubscription() ? (
+                <div className="flex items-center space-x-1 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                  <Crown className="h-4 w-4" />
+                  <span>Premium Active</span>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-1 bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">
+                  <Lock className="h-4 w-4" />
+                  <span>Free Plan</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -853,12 +1089,12 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
         ) : (
           <>
             {/* Tab Navigation */}
-            <div className="border-b border-gray-200">
-              <nav className="flex space-x-8">
+            <div className="border-b border-gray-200 overflow-x-auto">
+              <nav className="flex space-x-4 sm:space-x-8 min-w-max px-2">
                 {focusedItem.content.imageUrls && focusedItem.content.imageUrls.length > 0 && (
                   <button
-                    onClick={() => setActiveTab('images')}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    onClick={() => handleTabChange('images')}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                       activeTab === 'images'
                         ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -869,8 +1105,8 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                 )}
                 {focusedItem.content.text && (
                   <button
-                    onClick={() => setActiveTab('text')}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    onClick={() => handleTabChange('text')}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                       activeTab === 'text'
                         ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -881,8 +1117,8 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                 )}
                 {focusedItem.content.videoUrl && (
                   <button
-                    onClick={() => setActiveTab('video')}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    onClick={() => handleTabChange('video')}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                       activeTab === 'video'
                         ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -893,8 +1129,8 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                 )}
                 {focusedItem.content.pdfUrl && (
                   <button
-                    onClick={() => setActiveTab('pdf')}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    onClick={() => handleTabChange('pdf')}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                       activeTab === 'pdf'
                         ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -907,16 +1143,16 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
             </div>
 
             {/* Tab Content */}
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6">
               {activeTab === 'images' && focusedItem.content.imageUrls && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     {focusedItem.content.imageUrls.map((imageUrl: string, index: number) => (
                       <div key={index} className="relative group cursor-pointer">
                         <img
                           src={imageUrl}
                           alt={`Study image ${index + 1}`}
-                          className="w-full h-64 object-cover rounded-lg shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
+                          className="w-full h-48 sm:h-64 object-cover rounded-lg shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
                           onClick={() => handleImageClick(imageUrl, focusedItem.content.imageUrls, index)}
                           onError={(e) => {
                             console.error('Image failed to load:', imageUrl);
@@ -936,16 +1172,16 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
               )}
 
               {activeTab === 'text' && focusedItem.content.text && (
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Study Notes</h3>
+                <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Study Notes</h3>
                   <div className="prose max-w-none">
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{focusedItem.content.text}</p>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm sm:text-base">{focusedItem.content.text}</p>
                   </div>
                 </div>
               )}
 
               {activeTab === 'video' && focusedItem.content.videoUrl && (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">Video Lesson</h3>
                   <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
                     <iframe
@@ -1183,8 +1419,8 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h2 className="text-2xl font-bold text-white">{subcategoryName}</h2>
-            <p className="text-sm text-white">Learning Content</p>
+            <h2 className="text-2xl font-bold text-black">{subcategoryName}</h2>
+            <p className="text-sm text-black">Learning Content</p>
           </div>
         </div>
       </div>
@@ -1221,9 +1457,9 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                         </div>
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
-                          <p className="text-sm text-gray-600">
+                          {/* <p className="text-sm text-gray-600">
                             {item.content?.text || 'No description available'}
-                          </p>
+                          </p> */}
                         </div>
                       </div>
                       <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
@@ -1272,7 +1508,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                           )}
 
                           {/* Text Content */}
-                          {item.content.text && (
+                          {/* {item.content.text && (
                             <div className="space-y-3">
                               <h4 className="text-sm font-medium text-gray-700 flex items-center">
                                 <FileText className="h-4 w-4 mr-2" />
@@ -1282,7 +1518,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                                 <p className="text-gray-700 leading-relaxed">{item.content.text}</p>
                               </div>
                             </div>
-                          )}
+                          )} */}
 
                           {/* Action Buttons */}
                           <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">

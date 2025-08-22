@@ -114,20 +114,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
   return (
     <div className="min-h-screen bg-transparent">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-900/95 via-purple-900/95 to-indigo-900/95 backdrop-blur-xl shadow-2xl border-b border-blue-500/30">
+      <header className="bg-white/95 backdrop-blur-xl shadow-2xl border-b border-blue-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo and Sidebar Toggle */}
             <div className="flex items-center">
               <button
                 onClick={toggleSidebar}
-                className="hidden lg:block p-2 text-blue-300 hover:text-blue-100 mr-4 transition-all duration-200 hover:bg-blue-500/20 rounded-lg"
+                className="hidden lg:block p-2 text-blue-600 hover:text-blue-800 mr-4 transition-all duration-200 hover:bg-blue-100 rounded-lg"
               >
                 <Menu className="h-6 w-6" />
               </button>
               <div className="flex items-center space-x-3">
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 p-1 shadow-lg">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-green-500 p-1 shadow-lg">
                     <img 
                       src="/image.png" 
                       alt="Vidyabani Logo" 
@@ -137,31 +137,31 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
                   <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-pulse"></div>
                 </div>
                 <div className="flex flex-col">
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-green-600 to-blue-800 bg-clip-text text-transparent">
                     Vidyabani
                   </h1>
-                  <p className="text-xs text-blue-200 font-medium">Learning Platform</p>
+                  <p className="text-xs text-blue-600 font-medium">Learning Platform</p>
                 </div>
               </div>
             </div>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-6">
-              <button className="relative p-3 text-blue-200 hover:text-white transition-all duration-200 hover:bg-blue-500/20 rounded-xl group">
+              <button className="relative p-3 text-blue-600 hover:text-blue-800 transition-all duration-200 hover:bg-blue-100 rounded-xl group">
                 <Bell className="h-6 w-6" />
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/10 group-hover:to-purple-500/10 rounded-xl transition-all duration-200"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-green-500/0 group-hover:from-blue-500/10 group-hover:to-green-500/10 rounded-xl transition-all duration-200"></div>
               </button>
               <div className="flex items-center space-x-4">
                 <div className="text-right">
-                  <p className="text-sm font-medium text-white">{user.name}</p>
-                  <p className="text-xs text-blue-200">{user.email}</p>
+                  <p className="text-sm font-medium notebook-text">{user.name}</p>
+                  <p className="text-xs text-blue-600">{user.email}</p>
                 </div>
                 <div className="relative">
-                  <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                  <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
                     <User className="h-5 w-5 text-white" />
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-blue-900"></div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
                 </div>
               </div>
             </div>
@@ -170,7 +170,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
             <div className="md:hidden">
               <button
                 onClick={toggleMobileMenu}
-                className="p-3 text-blue-200 hover:text-white transition-all duration-200 hover:bg-blue-500/20 rounded-xl"
+                className="p-3 text-blue-600 hover:text-blue-800 transition-all duration-200 hover:bg-blue-100 rounded-xl"
               >
                 {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
@@ -180,23 +180,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-gradient-to-b from-blue-900/95 to-purple-900/95 border-t border-blue-500/30 backdrop-blur-xl">
+          <div className="md:hidden bg-white/95 border-t border-blue-200 backdrop-blur-xl">
             <div className="px-4 py-4 space-y-4">
               <div className="flex items-center space-x-4">
                 <div className="relative">
-                  <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
                     <User className="h-5 w-5 text-white" />
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-blue-900"></div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white">{user.name}</p>
-                  <p className="text-xs text-blue-200">{user.email}</p>
+                  <p className="text-sm font-medium notebook-text">{user.name}</p>
+                  <p className="text-xs text-blue-600">{user.email}</p>
                 </div>
               </div>
               <button
                 onClick={onLogout}
-                className="flex items-center space-x-3 text-blue-200 hover:text-white w-full p-3 rounded-xl hover:bg-blue-500/20 transition-all duration-200"
+                className="flex items-center space-x-3 text-blue-600 hover:text-blue-800 w-full p-3 rounded-xl hover:bg-blue-100 transition-all duration-200"
               >
                 <LogOut className="h-5 w-5" />
                 <span>Logout</span>
@@ -209,7 +209,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
       <div className="flex">
         {/* Desktop Sidebar */}
         <aside className={`hidden lg:block lg:flex-shrink-0 ${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300`}>
-          <div className="flex flex-col h-full bg-gray-800/90 backdrop-blur-md border-r border-gray-700">
+          <div className="flex flex-col h-full bg-white/90 backdrop-blur-md border-r border-gray-200 shadow-lg">
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
               <nav className="mt-5 flex-1 px-2 space-y-1">
                 {navigationItems.map((item) => {
@@ -220,8 +220,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
                       onClick={() => setActiveTab(item.id as ActiveTab)}
                       className={`group flex items-center px-2 py-3 text-sm font-medium rounded-md w-full text-left transition-colors duration-200 ${
                         activeTab === item.id
-                          ? 'bg-blue-500/20 text-blue-400'
-                          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                       }`}
                     >
                       <Icon className={`mr-3 h-5 w-5 ${item.color}`} />
@@ -251,7 +251,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
       </div>
 
       {/* Mobile Bottom Navigation Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-800/95 backdrop-blur-md border-t border-gray-700 z-50">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 z-50 shadow-lg">
         <div className="flex justify-around items-center h-16">
           {navigationItems.map((item) => {
             const Icon = item.icon;
@@ -261,8 +261,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
                 onClick={() => setActiveTab(item.id as ActiveTab)}
                 className={`flex flex-col items-center justify-center flex-1 h-full transition-colors duration-200 ${
                   activeTab === item.id
-                    ? 'text-blue-400'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'text-blue-600'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <Icon className={`h-6 w-6 mb-1 ${activeTab === item.id ? item.color : ''}`} />

@@ -156,10 +156,10 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ userData, on
       <div className="text-center space-y-4">
         <div className="flex items-center justify-center space-x-2 mb-4">
           <Crown className="h-8 w-8 text-yellow-500" />
-          <h1 className="text-3xl font-bold text-white">Premium Subscription</h1>
+          <h1 className="text-3xl font-bold notebook-heading">Premium Subscription</h1>
         </div>
-        <p className="text-lg text-white max-w-2xl mx-auto">
-          Unlock unlimited access to premium learning materials, AI-powered assistance, and exclusive content
+        <p className="text-lg notebook-text max-w-2xl mx-auto">
+          Unlock unlimited access to premium learning materials, AI-powered assistance, and exclusive content 🌍
         </p>
       </div>
 
@@ -211,7 +211,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ userData, on
       {/* Subscription Plan Card */}
       <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
         {/* Plan Header */}
-        <div className="bg-gradient-to-br from-purple-600 to-pink-600 p-8 text-white">
+        <div className="bg-gradient-to-br from-blue-600 to-green-600 p-8 text-white">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center space-x-2 mb-2">
@@ -221,12 +221,12 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ userData, on
                 </span>
               </div>
               <h2 className="text-3xl font-bold mb-2">Premium Plan</h2>
-              <p className="text-purple-100">Complete access to all learning features</p>
+              <p className="text-blue-100">Complete access to all learning features</p>
             </div>
             <div className="text-right">
               <div className="text-4xl font-bold">₹499</div>
-              <div className="text-purple-100">per year</div>
-              <div className="text-sm text-purple-200 mt-1">Save 58% vs monthly</div>
+              <div className="text-blue-100">per year</div>
+              <div className="text-sm text-blue-200 mt-1">Save 58% vs monthly</div>
             </div>
           </div>
         </div>
@@ -238,12 +238,12 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ userData, on
               const IconComponent = feature.icon;
               return (
                 <div key={index} className="flex items-start space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <IconComponent className="h-5 w-5 text-purple-600" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <IconComponent className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{feature.title}</h3>
-                    <p className="text-sm text-gray-600">{feature.description}</p>
+                    <h3 className="font-semibold notebook-heading mb-1">{feature.title}</h3>
+                    <p className="text-sm notebook-text">{feature.description}</p>
                   </div>
                 </div>
               );
@@ -251,23 +251,23 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ userData, on
           </div>
 
           {/* Additional Benefits */}
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="bg-gray-50 rounded-xl p-6 mb-8">
+            <h3 className="text-lg font-semibold notebook-heading mb-4 flex items-center">
               <Star className="h-5 w-5 text-yellow-500 mr-2" />
               What You'll Get
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-center space-x-2">
                 <Check className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-gray-700">365 days access</span>
+                <span className="text-sm notebook-text">365 days access</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Check className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-gray-700">Unlimited downloads</span>
+                <span className="text-sm notebook-text">Unlimited downloads</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Check className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-gray-700">Priority support</span>
+                <span className="text-sm notebook-text">Priority support</span>
               </div>
             </div>
           </div>
@@ -277,7 +277,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ userData, on
             <button
               onClick={handleSubscribe}
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white py-4 px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {isLoading ? (
                 <>

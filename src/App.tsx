@@ -23,6 +23,10 @@ const SigninPage: React.FC = () => {
 
   return (
     <>
+      {/* Notebook Background */}
+      <div className="notebook-bg"></div>
+      {/* Geography/Earth Background */}
+      <div className="geography-bg"></div>
       {/* Animated Stars Background */}
       <div className="stars">
         {Array.from({ length: 20 }, (_, i) => (
@@ -49,6 +53,10 @@ const SignupPage: React.FC = () => {
 
   return (
     <>
+      {/* Notebook Background */}
+      <div className="notebook-bg"></div>
+      {/* Geography/Earth Background */}
+      <div className="geography-bg"></div>
       {/* Animated Stars Background */}
       <div className="stars">
         {Array.from({ length: 20 }, (_, i) => (
@@ -111,6 +119,10 @@ const DashboardPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
+        {/* Notebook Background */}
+        <div className="notebook-bg"></div>
+        {/* Geography/Earth Background */}
+        <div className="geography-bg"></div>
         {/* Animated Stars Background */}
         <div className="stars">
           {Array.from({ length: 20 }, (_, i) => (
@@ -118,8 +130,8 @@ const DashboardPage: React.FC = () => {
           ))}
         </div>
         <div className="content-wrapper text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Loading...</h1>
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+          <h1 className="text-2xl font-bold notebook-heading mb-4">Loading...</h1>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
         </div>
       </div>
     );
@@ -131,6 +143,10 @@ const DashboardPage: React.FC = () => {
 
   return (
     <>
+      {/* Notebook Background */}
+      <div className="notebook-bg"></div>
+      {/* Geography/Earth Background */}
+      <div className="geography-bg"></div>
       {/* Animated Stars Background */}
       <div className="stars">
         {Array.from({ length: 20 }, (_, i) => (
@@ -148,6 +164,10 @@ const DashboardPage: React.FC = () => {
 const LoadingPage: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center">
+      {/* Notebook Background */}
+      <div className="notebook-bg"></div>
+      {/* Geography/Earth Background */}
+      <div className="geography-bg"></div>
       {/* Animated Stars Background */}
       <div className="stars">
         {Array.from({ length: 20 }, (_, i) => (
@@ -155,8 +175,8 @@ const LoadingPage: React.FC = () => {
         ))}
       </div>
       <div className="content-wrapper text-center">
-        <h1 className="text-2xl font-bold text-white mb-4">Loading...</h1>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+        <h1 className="text-2xl font-bold notebook-heading mb-4">Loading...</h1>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
       </div>
     </div>
   );
