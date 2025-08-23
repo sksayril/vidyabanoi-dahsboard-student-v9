@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { AnimatedCat } from './AnimatedCat';
+import { AnimatedBook } from './AnimatedBook';
 import { loginUser } from '../api';
 import { LoginRequest, LoginResponse } from '../types/api';
 
@@ -48,7 +48,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToSignup 
       <div className="notebook-card backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-500 to-green-500 p-8 text-center">
-          <AnimatedCat className="mx-auto mb-4" />
+          <AnimatedBook className="mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-white mb-2">Vidyabani</h1>
           <p className="text-blue-50">Welcome back, young learner! 🌍</p>
         </div>

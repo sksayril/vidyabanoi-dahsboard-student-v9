@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Lock, User, Eye, EyeOff, Phone, BookOpen, ArrowLeft, ArrowRight, Check } from 'lucide-react';
-import { AnimatedCat } from './AnimatedCat';
+import { AnimatedBook } from './AnimatedBook';
 import { getParentCategories, getSubcategories, registerUser } from '../api';
 import { Category, Subcategory, RegisterRequest } from '../types/api';
 import { ToastContainer, toast } from 'react-toastify';
@@ -458,7 +458,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
       <div className="notebook-card backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-500 to-green-500 p-6 text-center">
-          <AnimatedCat className="mx-auto mb-4 w-16 h-16" />
+          {/* <AnimatedBook className="mx-auto mb-4 w-10 h-10" /> */}
           <h1 className="text-2xl font-bold text-white mb-2">Vidyabani</h1>
           <p className="text-blue-50 text-sm">Join our learning adventure! 🌍</p>
         </div>

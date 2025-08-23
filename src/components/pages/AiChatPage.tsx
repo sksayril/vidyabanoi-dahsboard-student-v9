@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { startChat, getChatHistory, continueChat, getChat } from '../../api';
 import { ChatMessage, ChatHistoryItem } from '../../types/api';
-import { AnimatedCat } from '../AnimatedCat';
+import { AnimatedBook } from '../AnimatedBook';
 
 // Custom CSS for child-friendly animations
 const customStyles = `
@@ -1188,7 +1188,7 @@ export const AiChatPage: React.FC = () => {
               }`}>
                 <div className="flex items-center space-x-4">
                   {isVoiceEnabled ? (
-                    <AnimatedCat 
+                    <AnimatedBook 
                       isVoiceEnabled={isVoiceEnabled}
                       isSpeaking={isSpeaking}
                       isRecording={isRecording}

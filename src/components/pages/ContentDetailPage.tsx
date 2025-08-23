@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Play, Download, FileText, Image, Video, BookOpen, ChevronRight, X, Maximize2, Minimize2, Eye, Star, Rocket, Heart, Sparkles, GraduationCap, Award, Crown, Lock, Gift, Check } from 'lucide-react';
+import { ArrowLeft, Play, Download, FileText, Image, Video, BookOpen, ChevronRight, X, Maximize2, Minimize2, Eye, Star, Rocket, Heart, Sparkles, GraduationCap, Award, Crown, Lock, Gift, Check, Highlighter } from 'lucide-react';
 import { getSubcategories } from '../../api';
 import { SubcategoriesResponse, User } from '../../types/api';
 
@@ -38,6 +38,9 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
+  const [highlights, setHighlights] = useState<{[key: string]: Array<{start: number, end: number, color: string, text: string}>}>({});
+  const [isHighlighting, setIsHighlighting] = useState(false);
+  const [highlightColor, setHighlightColor] = useState('#fef3c7'); // Default yellow
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -272,6 +275,458 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
       return 0;
     }
   };
+
+  // Load highlights from localStorage
+  useEffect(() => {
+    if (focusedItem) {
+      const contentId = focusedItem._id || focusedItem.id;
+      const savedHighlights = localStorage.getItem(`highlights_${contentId}`);
+      if (savedHighlights) {
+        try {
+          setHighlights(JSON.parse(savedHighlights));
+        } catch (error) {
+          console.error('Error loading highlights:', error);
+        }
+      }
+    }
+  }, [focusedItem]);
+
+  // Save highlights to localStorage
+  const saveHighlights = (contentId: string, newHighlights: any) => {
+    try {
+      localStorage.setItem(`highlights_${contentId}`, JSON.stringify(newHighlights));
+    } catch (error) {
+      console.error('Error saving highlights:', error);
+    }
+  };
+
+  // Toggle highlighting mode
+  const toggleHighlighting = () => {
+    setIsHighlighting(!isHighlighting);
+  };
+
+  // Handle text selection and highlighting
+  const handleTextSelection = (sectionIndex: number, qaIndex: number, type: 'question' | 'answer') => {
+    if (!isHighlighting || !focusedItem) return;
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    const selectedText = selection.toString().trim();
+    
+    if (selectedText.length === 0) return;
+
+    console.log('Text selection:', { sectionIndex, qaIndex, type, selectedText });
+
+    const contentId = focusedItem._id || focusedItem.id;
+    const highlightKey = `${sectionIndex}_${qaIndex}_${type}`;
+    
+    // Get the original text content (without HTML)
+    let originalText = '';
+    if (type === 'question') {
+      const qaItem = formatStudyNotes(focusedItem.content.text)[sectionIndex]?.qa?.[qaIndex];
+      originalText = qaItem?.question || '';
+    } else {
+      const qaItem = formatStudyNotes(focusedItem.content.text)[sectionIndex]?.qa?.[qaIndex];
+      originalText = qaItem?.answer || '';
+    }
+
+    console.log('Original text:', originalText);
+
+    if (!originalText) {
+      console.warn('No original text found');
+      return;
+    }
+
+    // Find the position of selected text in the original text
+    const startPos = originalText.indexOf(selectedText);
+    if (startPos === -1) {
+      console.warn('Selected text not found in original text');
+      return;
+    }
+
+    const endPos = startPos + selectedText.length;
+
+    // Check if this range overlaps with existing highlights
+    const existingHighlights = highlights[highlightKey] || [];
+    const hasOverlap = existingHighlights.some(highlight => 
+      (startPos < highlight.end && endPos > highlight.start)
+    );
+
+    if (hasOverlap) {
+      console.log('Highlight overlaps with existing highlight');
+      selection.removeAllRanges();
+      return;
+    }
+
+    // Create new highlight
+    const newHighlight = {
+      start: startPos,
+      end: endPos,
+      color: highlightColor,
+      text: selectedText
+    };
+
+    console.log('Creating new highlight:', newHighlight);
+
+    // Update highlights state
+    const updatedHighlights = {
+      ...highlights,
+      [highlightKey]: [...existingHighlights, newHighlight]
+    };
+
+    setHighlights(updatedHighlights);
+    saveHighlights(contentId, updatedHighlights);
+
+    // Clear selection
+    selection.removeAllRanges();
+    console.log('Highlight added successfully');
+  };
+
+  // Handle cross-element text selection and highlighting
+  const handleCrossElementSelection = () => {
+    if (!isHighlighting || !focusedItem) return;
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    const selectedText = selection.toString().trim();
+    
+    if (selectedText.length === 0) return;
+
+    console.log('Cross-element text selection:', selectedText);
+
+    // Get the specific element where the selection started
+    const startContainer = range.startContainer;
+    const endContainer = range.endContainer;
+    
+    console.log('Selection containers:', { startContainer, endContainer });
+    
+    // Find the closest question/answer container
+    let targetElement: Element | null = null;
+    let sectionIndex = -1;
+    let qaIndex = -1;
+    let type: 'question' | 'answer' = 'answer';
+    
+    // Traverse up the DOM to find the question/answer container
+    let currentElement: Node | null = startContainer;
+    let depth = 0;
+    while (currentElement && currentElement !== document.body && depth < 10) {
+      if (currentElement.nodeType === Node.ELEMENT_NODE) {
+        const element = currentElement as Element;
+        console.log(`Checking element at depth ${depth}:`, element.tagName, element.attributes);
+        
+        // Check if this is a question container
+        if (element.hasAttribute('data-section') && element.hasAttribute('data-qa') && element.hasAttribute('data-type')) {
+          sectionIndex = parseInt(element.getAttribute('data-section') || '-1');
+          qaIndex = parseInt(element.getAttribute('data-qa') || '-1');
+          type = element.getAttribute('data-type') as 'question' | 'answer';
+          targetElement = element;
+          console.log('Found Q&A container:', { sectionIndex, qaIndex, type });
+          break;
+        }
+        
+        // Check if this is a section content container
+        if (element.hasAttribute('data-section') && element.hasAttribute('data-type') && element.getAttribute('data-type') === 'section-content') {
+          sectionIndex = parseInt(element.getAttribute('data-section') || '-1');
+          qaIndex = -1; // Section content
+          type = 'answer';
+          targetElement = element;
+          console.log('Found section content container:', { sectionIndex, qaIndex, type });
+          break;
+        }
+      }
+      currentElement = currentElement.parentNode;
+      depth++;
+    }
+
+    if (!targetElement || sectionIndex === -1) {
+      console.log('Could not determine target element for highlighting');
+      selection.removeAllRanges();
+      return;
+    }
+
+    console.log('Target element found:', { sectionIndex, qaIndex, type });
+
+    // Get the original text content for the specific element
+    let originalText = '';
+    if (qaIndex === -1) {
+      // Section content
+      const section = formatStudyNotes(focusedItem.content.text)[sectionIndex];
+      originalText = section?.content || '';
+      console.log('Section content text:', originalText);
+    } else {
+      // Question or answer
+      const section = formatStudyNotes(focusedItem.content.text)[sectionIndex];
+      const qaItem = section?.qa?.[qaIndex];
+      console.log('QA item found:', qaItem);
+      if (type === 'question') {
+        originalText = qaItem?.question || '';
+        console.log('Question text:', originalText);
+      } else {
+        originalText = qaItem?.answer || '';
+        console.log('Answer text:', originalText);
+      }
+    }
+
+    if (!originalText) {
+      console.warn('No original text found for target element');
+      selection.removeAllRanges();
+      return;
+    }
+
+    // Find the position of selected text in the original text
+    const startPos = originalText.indexOf(selectedText);
+    if (startPos === -1) {
+      console.warn('Selected text not found in original text');
+      selection.removeAllRanges();
+      return;
+    }
+
+    const endPos = startPos + selectedText.length;
+
+    // Create highlight key for the specific element
+    const contentId = focusedItem._id || focusedItem.id;
+    const highlightKey = qaIndex === -1 
+      ? `${sectionIndex}_section_${type}`
+      : `${sectionIndex}_${qaIndex}_${type}`;
+
+    // Check for overlaps with existing highlights
+    const existingHighlights = highlights[highlightKey] || [];
+    const hasOverlap = existingHighlights.some(highlight => 
+      (startPos < highlight.end && endPos > highlight.start)
+    );
+
+    if (hasOverlap) {
+      console.log('Highlight overlaps with existing highlight');
+      selection.removeAllRanges();
+      return;
+    }
+
+    // Create new highlight
+    const newHighlight = {
+      start: startPos,
+      end: endPos,
+      color: highlightColor,
+      text: selectedText
+    };
+
+    console.log('Creating new highlight:', newHighlight);
+
+    // Update highlights state for the specific element only
+    const updatedHighlights = {
+      ...highlights,
+      [highlightKey]: [...existingHighlights, newHighlight]
+    };
+
+    setHighlights(updatedHighlights);
+    saveHighlights(contentId, updatedHighlights);
+
+    // Clear selection
+    selection.removeAllRanges();
+    console.log('Highlight added successfully to specific element');
+  };
+
+  // Remove specific highlight
+  const removeHighlight = (sectionIndex: number, qaIndex: number, type: 'question' | 'answer', highlightIndex: number) => {
+    if (!focusedItem) return;
+
+    const contentId = focusedItem._id || focusedItem.id;
+    const highlightKey = qaIndex === -1 
+      ? `${sectionIndex}_section_${type}`
+      : `${sectionIndex}_${qaIndex}_${type}`;
+    
+    const updatedHighlights = { ...highlights };
+    if (updatedHighlights[highlightKey]) {
+      updatedHighlights[highlightKey].splice(highlightIndex, 1);
+      if (updatedHighlights[highlightKey].length === 0) {
+        delete updatedHighlights[highlightKey];
+      }
+    }
+
+    setHighlights(updatedHighlights);
+    saveHighlights(contentId, updatedHighlights);
+  };
+
+  // Clear all highlights for current content
+  const clearAllHighlights = () => {
+    if (!focusedItem) return;
+
+    const contentId = focusedItem._id || focusedItem.id;
+    setHighlights({});
+    localStorage.removeItem(`highlights_${contentId}`);
+  };
+
+  // Apply highlights to text
+  const applyHighlights = (text: string, sectionIndex: number, qaIndex: number, type: 'question' | 'answer') => {
+    const highlightKey = `${sectionIndex}_${qaIndex}_${type}`;
+    const contentHighlights = highlights[highlightKey] || [];
+    
+    console.log(`Applying highlights for ${highlightKey}:`, contentHighlights);
+    console.log(`Text to highlight: "${text}"`);
+    
+    if (contentHighlights.length === 0) return text;
+
+    // Sort highlights by start position
+    const sortedHighlights = [...contentHighlights].sort((a, b) => a.start - b.start);
+    
+    let result = '';
+    let lastIndex = 0;
+
+    sortedHighlights.forEach((highlight, highlightIndex) => {
+      // Validate highlight positions
+      if (highlight.start < 0 || highlight.end > text.length || highlight.start >= highlight.end) {
+        console.warn('Invalid highlight positions:', highlight, 'for text length:', text.length);
+        return;
+      }
+
+      // Add text before highlight
+      result += text.slice(lastIndex, highlight.start);
+      
+      // Add highlighted text
+      result += `<span class="highlighted-text" style="background-color: ${highlight.color}; padding: 1px 2px; border-radius: 3px; position: relative;" data-highlight-index="${highlightIndex}" data-highlight-type="${type}">`;
+      result += text.slice(highlight.start, highlight.end);
+      result += `<button class="remove-highlight-btn" onclick="removeHighlightFromText(${sectionIndex}, ${qaIndex}, '${type}', ${highlightIndex})" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; cursor: pointer; display: none;">×</button>`;
+      result += '</span>';
+      
+      lastIndex = highlight.end;
+    });
+
+    // Add remaining text
+    result += text.slice(lastIndex);
+    
+    return result;
+  };
+
+  // Apply highlights to section content
+  const applySectionHighlights = (text: string, sectionIndex: number) => {
+    const highlightKey = `${sectionIndex}_section_answer`;
+    const contentHighlights = highlights[highlightKey] || [];
+    
+    if (contentHighlights.length === 0) return text;
+
+    // Sort highlights by start position
+    const sortedHighlights = [...contentHighlights].sort((a, b) => a.start - b.start);
+    
+    let result = '';
+    let lastIndex = 0;
+
+    sortedHighlights.forEach((highlight, highlightIndex) => {
+      // Validate highlight positions
+      if (highlight.start < 0 || highlight.end > text.length || highlight.start >= highlight.end) {
+        console.warn('Invalid highlight positions:', highlight, 'for text length:', text.length);
+        return;
+      }
+
+      // Add text before highlight
+      result += text.slice(lastIndex, highlight.start);
+      
+      // Add highlighted text
+      result += `<span class="highlighted-text" style="background-color: ${highlight.color}; padding: 1px 2px; border-radius: 3px; position: relative;" data-highlight-index="${highlightIndex}" data-highlight-type="section-content">`;
+      result += text.slice(highlight.start, highlight.end);
+      result += `<button class="remove-highlight-btn" onclick="removeHighlightFromText(${sectionIndex}, -1, 'answer', ${highlightIndex})" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; cursor: pointer; display: none;">×</button>`;
+      result += '</span>';
+      
+      lastIndex = highlight.end;
+    });
+
+    // Add remaining text
+    result += text.slice(lastIndex);
+    
+    return result;
+  };
+
+  // Highlight color options
+  const highlightColors = [
+    { color: '#fef3c7', name: 'Yellow' },
+    { color: '#fecaca', name: 'Red' },
+    { color: '#bbf7d0', name: 'Green' },
+    { color: '#bfdbfe', name: 'Blue' },
+    { color: '#e9d5ff', name: 'Purple' },
+    { color: '#fed7aa', name: 'Orange' }
+  ];
+
+  // Add event listener for removing highlights
+  useEffect(() => {
+    const handleRemoveHighlight = (event: CustomEvent) => {
+      const { sectionIndex, qaIndex, type, highlightIndex } = event.detail;
+      removeHighlight(sectionIndex, qaIndex, type as 'question' | 'answer', highlightIndex);
+    };
+
+    window.addEventListener('removeHighlight', handleRemoveHighlight as EventListener);
+    
+    return () => {
+      window.removeEventListener('removeHighlight', handleRemoveHighlight as EventListener);
+    };
+  }, []);
+
+  // Add CSS styles for highlighted text
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .highlighted-text {
+        position: relative;
+        display: inline;
+        border-radius: 3px;
+        transition: all 0.2s ease;
+        border: 1px solid rgba(0,0,0,0.1);
+      }
+      
+      .highlighted-text:hover {
+        transform: scale(1.02);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        border-color: rgba(0,0,0,0.2);
+      }
+      
+      .highlighted-text:hover .remove-highlight-btn {
+        display: block !important;
+      }
+      
+      .remove-highlight-btn {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+        cursor: pointer;
+        display: none;
+        z-index: 10;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      }
+      
+      .remove-highlight-btn:hover {
+        background: #dc2626;
+        transform: scale(1.1);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      }
+      
+      /* Different highlight styles for different content types */
+      .highlighted-text[data-highlight-type="question"] {
+        border-left: 3px solid #3b82f6;
+      }
+      
+      .highlighted-text[data-highlight-type="answer"] {
+        border-left: 3px solid #10b981;
+      }
+      
+      .highlighted-text[data-highlight-type="section-content"] {
+        border-left: 3px solid #8b5cf6;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   // Handle back navigation from deep content
   const handleBackFromDeep = () => {
@@ -909,6 +1364,100 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
     };
   };
 
+  // Format study notes with regex parsing for Q&A structure
+  const formatStudyNotes = (text: string) => {
+    const sections: Array<{
+      title?: string;
+      subtitle?: string;
+      qa?: Array<{ question: string; answer: string }>;
+      content?: string;
+    }> = [];
+
+    // Split text into lines and process
+    const lines = text.split('\n').filter(line => line.trim());
+    let currentSection: any = {};
+    let currentQA: any = null;
+    let isInQA = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      // Check for section titles (lines with dashes or main headings)
+      if (line.includes('-') && line.includes('Questions') || line.includes('Democracy') || line.includes('Features')) {
+        if (currentSection.title || currentSection.qa || currentSection.content) {
+          sections.push({ ...currentSection });
+        }
+        currentSection = { title: line };
+        isInQA = false;
+        continue;
+      }
+
+      // Check for subtitles (lines that might be section descriptions)
+      if (line.includes('Two Tales') || line.includes('Expansion')) {
+        if (currentSection.title) {
+          currentSection.subtitle = line;
+        }
+        continue;
+      }
+
+      // Check for questions (lines starting with Q or containing question marks)
+      if (line.startsWith('Q') || line.includes('?') || (line.includes('Who') || line.includes('What') || line.includes('Describe') || line.includes('Trace'))) {
+        if (currentQA) {
+          if (currentSection.qa) {
+            currentSection.qa.push(currentQA);
+          } else {
+            currentSection.qa = [currentQA];
+          }
+        }
+        currentQA = { question: line, answer: '' };
+        isInQA = true;
+        continue;
+      }
+
+      // Check for answers (lines starting with Answer: or containing key information)
+      if (isInQA && currentQA && (line.startsWith('Answer:') || line.startsWith('*') || line.includes('was the president') || line.includes('ruled by') || line.includes('form of government') || line.includes('1900:'))) {
+        if (line.startsWith('Answer:')) {
+          currentQA.answer = line.replace('Answer:', '').trim();
+        } else if (line.startsWith('*')) {
+          currentQA.answer = line.replace('*', '').trim();
+        } else {
+          currentQA.answer = line;
+        }
+        continue;
+      }
+
+      // If we're in QA mode and have a current question, append to answer
+      if (isInQA && currentQA && currentQA.answer && line) {
+        currentQA.answer += ' ' + line;
+      }
+
+      // If we're not in QA mode and have content, add to section content
+      if (!isInQA && line && !currentSection.title) {
+        if (currentSection.content) {
+          currentSection.content += ' ' + line;
+        } else {
+          currentSection.content = line;
+        }
+      }
+    }
+
+    // Add the last QA item if exists
+    if (currentQA && currentQA.question) {
+      if (currentSection.qa) {
+        currentSection.qa.push(currentQA);
+      } else {
+        currentSection.qa = [currentQA];
+      }
+    }
+
+    // Add the last section
+    if (currentSection.title || currentSection.qa || currentSection.content) {
+      sections.push({ ...currentSection });
+    }
+
+    return sections;
+  };
+
   // Check if user has active subscription
   const hasActiveSubscription = () => {
     return userData?.subscription?.isActive === true;
@@ -1080,6 +1629,49 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                 </div>
               )}
             </div>
+            
+            {/* Highlighting Controls */}
+            <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-2">
+              <button
+                onClick={toggleHighlighting}
+                className={`p-2 rounded-lg transition-colors ${
+                  isHighlighting 
+                    ? 'bg-yellow-500 text-white' 
+                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                }`}
+                title={isHighlighting ? 'Exit highlighting mode' : 'Enter highlighting mode'}
+              >
+                <Highlighter className="h-4 w-4" />
+              </button>
+              
+              {isHighlighting && (
+                <>
+                  <div className="flex items-center space-x-1">
+                    {highlightColors.map((colorOption) => (
+                      <button
+                        key={colorOption.color}
+                        onClick={() => setHighlightColor(colorOption.color)}
+                        className={`w-6 h-6 rounded-full border-2 transition-all ${
+                          highlightColor === colorOption.color 
+                            ? 'border-gray-800 scale-110' 
+                            : 'border-gray-300 hover:border-gray-500'
+                        }`}
+                        style={{ backgroundColor: colorOption.color }}
+                        title={colorOption.name}
+                      />
+                    ))}
+                  </div>
+                  
+                  <button
+                    onClick={clearAllHighlights}
+                    className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                    title="Clear all highlights"
+                  >
+                    Clear All
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1172,10 +1764,106 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
               )}
 
               {activeTab === 'text' && focusedItem.content.text && (
-                <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Study Notes</h3>
-                  <div className="prose max-w-none">
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm sm:text-base">{focusedItem.content.text}</p>
+                <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 md:p-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 md:mb-6">Study Notes</h3>
+                  
+                  {/* Highlighting Instructions */}
+                  {isHighlighting && (
+                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="flex items-center space-x-2 text-yellow-800">
+                        <Highlighter className="h-4 w-4" />
+                        <span className="text-sm font-medium">Highlighting Mode Active</span>
+                      </div>
+                      <p className="text-xs text-yellow-700 mt-1">
+                        Select text in any question, answer, or section content to highlight. Each element maintains its own unique highlights.
+                      </p>
+                      <div className="mt-2 flex items-center space-x-2 text-xs text-yellow-600">
+                        <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                        <span>Individual element highlighting</span>
+                        <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div 
+                    className="space-y-3 sm:space-y-4 md:space-y-6"
+                    onMouseUp={() => handleCrossElementSelection()}
+                  >
+                    {formatStudyNotes(focusedItem.content.text).map((section, sectionIndex) => (
+                      <div key={sectionIndex} className="space-y-3 sm:space-y-4">
+                        {/* Section Title */}
+                        {section.title && (
+                          <div className="border-b-2 border-blue-200 pb-2">
+                            <h4 className="text-base sm:text-lg md:text-xl font-bold text-blue-800 break-words">{section.title}</h4>
+                            {section.subtitle && (
+                              <p className="text-xs sm:text-sm md:text-base text-blue-600 mt-1 break-words">{section.subtitle}</p>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Questions and Answers */}
+                        {section.qa && section.qa.length > 0 && (
+                          <div className="space-y-3 sm:space-y-4">
+                            {section.qa.map((item, qaIndex) => (
+                              <div key={qaIndex} className="bg-gray-50 rounded-lg p-3 sm:p-4 md:p-5 border-l-4 border-blue-500">
+                                {/* Question */}
+                                <div className="mb-2 sm:mb-3">
+                                  <div className="flex items-start space-x-2">
+                                    <span className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 text-white text-xs sm:text-sm font-bold rounded-full flex items-center justify-center mt-0.5">
+                                      Q
+                                    </span>
+                                    <h5 
+                                      className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 leading-tight break-words flex-1 cursor-text select-text"
+                                      data-section={sectionIndex}
+                                      data-qa={qaIndex}
+                                      data-type="question"
+                                      onMouseUp={() => handleCrossElementSelection()}
+                                      dangerouslySetInnerHTML={{
+                                        __html: applyHighlights(item.question, sectionIndex, qaIndex, 'question')
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                                
+                                {/* Answer */}
+                                <div className="ml-5 sm:ml-6 md:ml-8">
+                                  <div className="flex items-start space-x-2">
+                                    <span className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-green-500 text-white text-xs sm:text-sm font-bold rounded-full flex items-center justify-center mt-0.5">
+                                      A
+                                    </span>
+                                    <div 
+                                      className="text-xs sm:text-sm md:text-base text-gray-700 leading-relaxed break-words flex-1 cursor-text select-text"
+                                      data-section={sectionIndex}
+                                      data-qa={qaIndex}
+                                      data-type="answer"
+                                      onMouseUp={() => handleCrossElementSelection()}
+                                      dangerouslySetInnerHTML={{
+                                        __html: applyHighlights(item.answer, sectionIndex, qaIndex, 'answer')
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Regular content (non-QA) */}
+                        {section.content && (
+                          <div className="bg-blue-50 rounded-lg p-3 sm:p-4 md:p-5 border border-blue-200">
+                            <div 
+                              className="text-xs sm:text-sm md:text-base text-gray-700 leading-relaxed break-words cursor-text select-text"
+                              data-section={sectionIndex}
+                              data-type="section-content"
+                              onMouseUp={() => handleCrossElementSelection()}
+                              dangerouslySetInnerHTML={{
+                                __html: applySectionHighlights(section.content, sectionIndex)
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -1332,10 +2020,66 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                               <div className="space-y-3">
                                 <h4 className="text-sm font-medium text-gray-700 flex items-center">
                                   <FileText className="h-4 w-4 mr-2" />
-                                  Description
+                                  Study Notes
                                 </h4>
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                  <p className="text-gray-700 leading-relaxed">{item.content.text}</p>
+                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+                                  <div className="space-y-3 sm:space-y-4">
+                                    {formatStudyNotes(item.content.text).map((section, sectionIndex) => (
+                                      <div key={sectionIndex} className="space-y-3">
+                                        {/* Section Title */}
+                                        {section.title && (
+                                          <div className="border-b border-blue-200 pb-2">
+                                            <h5 className="text-sm sm:text-base font-bold text-blue-800 break-words">{section.title}</h5>
+                                            {section.subtitle && (
+                                              <p className="text-xs sm:text-sm text-blue-600 mt-1 break-words">{section.subtitle}</p>
+                                            )}
+                                          </div>
+                                        )}
+                                        
+                                        {/* Questions and Answers */}
+                                        {section.qa && section.qa.length > 0 && (
+                                          <div className="space-y-3">
+                                            {section.qa.map((qaItem, qaIndex) => (
+                                              <div key={qaIndex} className="bg-gray-50 rounded-lg p-2 sm:p-3 border-l-3 border-blue-400">
+                                                {/* Question */}
+                                                <div className="mb-2">
+                                                  <div className="flex items-start space-x-2">
+                                                    <span className="flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5 bg-blue-500 text-white text-xs font-bold rounded-full flex items-center justify-center mt-0.5">
+                                                      Q
+                                                    </span>
+                                                    <h6 className="text-xs sm:text-sm font-semibold text-gray-900 leading-tight break-words flex-1">
+                                                      {qaItem.question}
+                                                    </h6>
+                                                  </div>
+                                                </div>
+                                                
+                                                {/* Answer */}
+                                                <div className="ml-5 sm:ml-7">
+                                                  <div className="flex items-start space-x-2">
+                                                    <span className="flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5 bg-green-500 text-white text-xs font-bold rounded-full flex items-center justify-center mt-0.5">
+                                                      A
+                                                    </span>
+                                                    <div className="text-xs sm:text-sm text-gray-700 leading-relaxed break-words flex-1">
+                                                      {qaItem.answer}
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                        
+                                        {/* Regular content (non-QA) */}
+                                        {section.content && (
+                                          <div className="bg-blue-50 rounded-lg p-2 sm:p-3 border border-blue-200">
+                                            <div className="text-xs sm:text-sm text-gray-700 leading-relaxed break-words">
+                                              {section.content}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
                             )}
@@ -1613,4 +2357,17 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
       )}
     </div>
   );
-}; 
+};
+
+// Add this function to the global scope for the remove highlight button
+if (typeof window !== 'undefined') {
+  (window as any).removeHighlightFromText = function(sectionIndex: number, qaIndex: number, type: string, highlightIndex: number) {
+    // This will be handled by the component's removeHighlight function
+    // The button click will trigger a custom event that the component can listen to
+    window.dispatchEvent(new CustomEvent('removeHighlight', {
+      detail: { sectionIndex, qaIndex, type, highlightIndex }
+    }));
+  };
+}
+
+ 

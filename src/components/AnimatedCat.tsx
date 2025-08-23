@@ -1,280 +1,259 @@
 import React, { useState, useEffect } from 'react';
 
-interface AnimatedCatProps {
-  isVoiceEnabled?: boolean;
-  isSpeaking?: boolean;
-  isRecording?: boolean;
+interface AnimatedBookProps {
+  isOpen?: boolean;
+  isReading?: boolean;
+  isFlipping?: boolean;
   className?: string;
+  currentPage?: number;
+  totalPages?: number;
 }
 
-export const AnimatedCat: React.FC<AnimatedCatProps> = ({ 
-  isVoiceEnabled = false, 
-  isSpeaking = false, 
-  isRecording = false,
-  className = ""
+export const AnimatedBook: React.FC<AnimatedBookProps> = ({ 
+  isOpen = false, 
+  isReading = false, 
+  isFlipping = false,
+  className = "",
+  currentPage = 1,
+  totalPages = 10
 }) => {
-  const [mouthOpen, setMouthOpen] = useState(false);
-  const [blink, setBlink] = useState(false);
-  const [tailWag, setTailWag] = useState(false);
-  const [earTwitch, setEarTwitch] = useState(false);
-  const [whiskerTwitch, setWhiskerTwitch] = useState(false);
+  const [pageFlip, setPageFlip] = useState(false);
+  const [bookGlow, setBookGlow] = useState(false);
+  const [pageRustle, setPageRustle] = useState(false);
+  const [bookmarkBounce, setBookmarkBounce] = useState(false);
+  const [sparkleEffect, setSparkleEffect] = useState(false);
 
-  // Mouth animation for talking
+  // Page flipping animation
   useEffect(() => {
-    if (isSpeaking) {
-      const interval = setInterval(() => {
-        setMouthOpen(prev => !prev);
-      }, 200);
-      return () => clearInterval(interval);
-    } else {
-      setMouthOpen(false);
+    if (isFlipping) {
+      setPageFlip(true);
+      setTimeout(() => setPageFlip(false), 800);
     }
-  }, [isSpeaking]);
+  }, [isFlipping]);
 
-  // Blinking animation
+  // Book glow when reading
   useEffect(() => {
-    const blinkInterval = setInterval(() => {
-      setBlink(true);
-      setTimeout(() => setBlink(false), 150);
-    }, 3000);
-    return () => clearInterval(blinkInterval);
-  }, []);
-
-  // Tail wagging when voice is enabled
-  useEffect(() => {
-    if (isVoiceEnabled) {
-      const tailInterval = setInterval(() => {
-        setTailWag(prev => !prev);
-      }, 800);
-      return () => clearInterval(tailInterval);
+    if (isReading) {
+      const glowInterval = setInterval(() => {
+        setBookGlow(prev => !prev);
+      }, 2000);
+      return () => clearInterval(glowInterval);
     } else {
-      setTailWag(false);
+      setBookGlow(false);
     }
-  }, [isVoiceEnabled]);
+  }, [isReading]);
 
-  // Ear twitching animation
+  // Page rustle animation
   useEffect(() => {
-    const earInterval = setInterval(() => {
-      setEarTwitch(true);
-      setTimeout(() => setEarTwitch(false), 200);
-    }, 4000);
-    return () => clearInterval(earInterval);
-  }, []);
-
-  // Whisker twitching when speaking
-  useEffect(() => {
-    if (isSpeaking) {
-      const whiskerInterval = setInterval(() => {
-        setWhiskerTwitch(prev => !prev);
-      }, 300);
-      return () => clearInterval(whiskerInterval);
-    } else {
-      setWhiskerTwitch(false);
+    if (isOpen) {
+      const rustleInterval = setInterval(() => {
+        setPageRustle(true);
+        setTimeout(() => setPageRustle(false), 300);
+      }, 4000);
+      return () => clearInterval(rustleInterval);
     }
-  }, [isSpeaking]);
+  }, [isOpen]);
+
+  // Bookmark bounce animation
+  useEffect(() => {
+    if (isOpen) {
+      const bounceInterval = setInterval(() => {
+        setBookmarkBounce(true);
+        setTimeout(() => setBookmarkBounce(false), 600);
+      }, 5000);
+      return () => clearInterval(bounceInterval);
+    }
+  }, [isOpen]);
+
+  // Sparkle effect when opening
+  useEffect(() => {
+    if (isOpen && !isReading) {
+      setSparkleEffect(true);
+      setTimeout(() => setSparkleEffect(false), 1500);
+    }
+  }, [isOpen, isReading]);
 
   return (
     <div className={`relative ${className}`}>
-      {/* Proper Cat Body Structure - Sitting Position */}
+      {/* Book Container */}
       <div className="relative">
         {/* Shadow Layer */}
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-4 bg-black opacity-15 rounded-full blur-sm"></div>
+        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-black opacity-20 rounded-full blur-md"></div>
         
-        {/* Cat Body Container */}
-        <div className="relative w-24 h-32">
+        {/* Book Body */}
+        <div className={`relative w-32 h-40 transition-all duration-1000 ${isOpen ? 'transform rotate-y-12' : ''}`}>
           
-          {/* Cat Head */}
-          <div className="relative w-20 h-20 bg-gradient-to-br from-gray-100 via-white to-gray-50 rounded-full border-2 border-gray-300 shadow-lg mx-auto">
-            {/* 3D Highlight */}
-            <div className="absolute top-2 left-3 w-8 h-8 bg-white opacity-40 rounded-full blur-sm"></div>
+          {/* Book Cover - Front */}
+          <div className={`absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-lg border-4 border-blue-900 shadow-2xl transition-all duration-1000 ${
+            isOpen ? 'transform -rotate-y-45 translate-x-8' : ''
+          } ${bookGlow ? 'shadow-blue-400 shadow-2xl' : ''}`}>
             
-            {/* Cat Ears */}
-            <div className="absolute -top-3 left-2">
-              <div className={`w-6 h-8 bg-gradient-to-b from-gray-100 to-white rounded-t-full border border-gray-300 transform transition-transform duration-200 ${earTwitch ? 'rotate-2' : ''} shadow-md`}>
-                <div className="w-3 h-4 bg-pink-100 rounded-t-full mx-auto mt-1.5 border border-pink-200"></div>
+            {/* Cover Design */}
+            <div className="absolute inset-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded border-2 border-blue-400">
+              {/* Title */}
+              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 text-center">
+                <div className="w-16 h-1 bg-white rounded-full mb-2"></div>
+                <div className="w-12 h-0.5 bg-white rounded-full mb-1"></div>
+                <div className="w-14 h-0.5 bg-white rounded-full"></div>
               </div>
-            </div>
-            <div className="absolute -top-3 right-2">
-              <div className={`w-6 h-8 bg-gradient-to-b from-gray-100 to-white rounded-t-full border border-gray-300 transform transition-transform duration-200 ${earTwitch ? '-rotate-2' : ''} shadow-md`}>
-                <div className="w-3 h-4 bg-pink-100 rounded-t-full mx-auto mt-1.5 border border-pink-200"></div>
-              </div>
-            </div>
-
-            {/* Large Eyes like reference */}
-            <div className="absolute top-4 left-3">
-              <div className={`w-5 h-5 bg-gradient-to-br from-green-300 to-green-500 rounded-full border-2 border-green-600 flex items-center justify-center transition-all duration-200 shadow-inner ${blink ? 'h-1' : ''}`}>
-                <div className="w-2 h-3 bg-black rounded-full"></div>
-                <div className="absolute top-1 left-1 w-1.5 h-1.5 bg-white rounded-full opacity-90"></div>
-                <div className="absolute top-0.5 right-1 w-1 h-1 bg-white rounded-full opacity-60"></div>
-              </div>
-            </div>
-            <div className="absolute top-4 right-3">
-              <div className={`w-5 h-5 bg-gradient-to-br from-green-300 to-green-500 rounded-full border-2 border-green-600 flex items-center justify-center transition-all duration-200 shadow-inner ${blink ? 'h-1' : ''}`}>
-                <div className="w-2 h-3 bg-black rounded-full"></div>
-                <div className="absolute top-1 left-1 w-1.5 h-1.5 bg-white rounded-full opacity-90"></div>
-                <div className="absolute top-0.5 right-1 w-1 h-1 bg-white rounded-full opacity-60"></div>
-              </div>
-            </div>
-
-            {/* Pink Triangle Nose */}
-            <div className="absolute top-8 left-1/2 transform -translate-x-1/2">
-              <div className="w-0 h-0 border-l-2 border-r-2 border-b-3 border-l-transparent border-r-transparent border-b-pink-400 shadow-sm"></div>
-            </div>
-
-            {/* Mouth */}
-            <div className="absolute top-9 left-1/2 transform -translate-x-1/2">
-              {mouthOpen ? (
-                <div className="w-3 h-2 bg-pink-200 rounded-b-full border border-pink-300 shadow-inner"></div>
-              ) : (
-                <div className="flex space-x-1">
-                  <div className="w-2 h-0.5 bg-gray-400 rounded-full transform -rotate-12"></div>
-                  <div className="w-2 h-0.5 bg-gray-400 rounded-full transform rotate-12"></div>
-                </div>
-              )}
-            </div>
-
-            {/* Longer Whiskers */}
-            <div className={`absolute top-6 -left-2 transform transition-transform duration-300 ${whiskerTwitch ? 'translate-x-1' : ''}`}>
-              <div className="w-6 h-0.5 bg-gray-500 rounded-full opacity-80"></div>
-              <div className="w-5 h-0.5 bg-gray-500 rounded-full opacity-80 mt-1"></div>
-            </div>
-            <div className={`absolute top-6 -right-2 transform transition-transform duration-300 ${whiskerTwitch ? '-translate-x-1' : ''}`}>
-              <div className="w-6 h-0.5 bg-gray-500 rounded-full opacity-80"></div>
-              <div className="w-5 h-0.5 bg-gray-500 rounded-full opacity-80 mt-1"></div>
-            </div>
-
-            {/* Cheek Blush */}
-            <div className="absolute top-6 left-0">
-              <div className="w-3 h-2 bg-pink-200 rounded-full opacity-30 blur-sm"></div>
-            </div>
-            <div className="absolute top-6 right-0">
-              <div className="w-3 h-2 bg-pink-200 rounded-full opacity-30 blur-sm"></div>
-            </div>
-          </div>
-
-          {/* Cat Body - Sitting Position */}
-          <div className="relative -mt-3 mx-auto">
-            <div className="w-20 h-16 bg-gradient-to-br from-gray-100 via-white to-gray-50 rounded-full border-2 border-gray-300 shadow-lg">
-              {/* Body Highlight */}
-              <div className="absolute top-2 left-3 w-6 h-6 bg-white opacity-30 rounded-full blur-sm"></div>
               
-              {/* White Chest Marking */}
-              <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-10 h-10 bg-white opacity-80 rounded-full"></div>
+              {/* Decorative Elements */}
+              <div className="absolute top-12 left-1/2 transform -translate-x-1/2">
+                <div className="w-8 h-8 border-2 border-white rounded-full flex items-center justify-center">
+                  <div className="w-4 h-4 bg-white rounded-full"></div>
+                </div>
+              </div>
               
-              {/* Body Stripes/Pattern */}
-              <div className="absolute top-3 left-2 w-8 h-1 bg-gray-200 rounded-full opacity-50"></div>
-              <div className="absolute top-5 left-3 w-6 h-1 bg-gray-200 rounded-full opacity-50"></div>
-            </div>
-          </div>
-
-          {/* Front Paws - Sitting Position */}
-          <div className="absolute top-16 left-4">
-            <div className="w-4 h-6 bg-gradient-to-b from-gray-100 to-white rounded-full border border-gray-300 shadow-md">
-              {/* Paw Highlight */}
-              <div className="w-1 h-3 bg-white opacity-40 rounded-full ml-1 mt-1"></div>
-              {/* Paw Pads */}
-              <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
-                <div className="w-3 h-2 bg-pink-200 rounded-full border border-pink-300 shadow-sm">
-                  <div className="flex justify-center space-x-0.5 mt-0.5">
-                    <div className="w-0.5 h-0.5 bg-pink-300 rounded-full"></div>
-                    <div className="w-0.5 h-0.5 bg-pink-300 rounded-full"></div>
-                    <div className="w-0.5 h-0.5 bg-pink-300 rounded-full"></div>
-                  </div>
-                </div>
+              {/* Bottom Pattern */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                <div className="w-2 h-2 bg-white rounded-full opacity-80"></div>
+                <div className="w-2 h-2 bg-white rounded-full opacity-60"></div>
+                <div className="w-2 h-2 bg-white rounded-full opacity-80"></div>
               </div>
             </div>
+            
+            {/* Spine */}
+            <div className="absolute left-0 top-0 w-2 h-full bg-gradient-to-b from-blue-800 to-indigo-900 border-r border-blue-700"></div>
           </div>
-          <div className="absolute top-16 right-4">
-            <div className="w-4 h-6 bg-gradient-to-b from-gray-100 to-white rounded-full border border-gray-300 shadow-md">
-              {/* Paw Highlight */}
-              <div className="w-1 h-3 bg-white opacity-40 rounded-full ml-1 mt-1"></div>
-              {/* Paw Pads */}
-              <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
-                <div className="w-3 h-2 bg-pink-200 rounded-full border border-pink-300 shadow-sm">
-                  <div className="flex justify-center space-x-0.5 mt-0.5">
-                    <div className="w-0.5 h-0.5 bg-pink-300 rounded-full"></div>
-                    <div className="w-0.5 h-0.5 bg-pink-300 rounded-full"></div>
-                    <div className="w-0.5 h-0.5 bg-pink-300 rounded-full"></div>
-                  </div>
+
+          {/* Book Cover - Back */}
+          <div className={`absolute inset-0 bg-gradient-to-br from-blue-800 via-indigo-800 to-blue-900 rounded-lg border-4 border-blue-900 shadow-2xl transition-all duration-1000 ${
+            isOpen ? 'transform rotate-y-45 -translate-x-8' : ''
+          }`}>
+            {/* Back Cover Design */}
+            <div className="absolute inset-2 bg-gradient-to-br from-blue-700 to-indigo-800 rounded border-2 border-blue-600">
+              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-blue-300 rounded-full"></div>
+              <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-12 h-0.5 bg-blue-300 rounded-full"></div>
+              <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-0.5 bg-blue-300 rounded-full"></div>
+            </div>
+          </div>
+
+          {/* Pages Stack */}
+          <div className={`absolute inset-0 transition-all duration-1000 ${
+            isOpen ? 'transform rotate-y-6' : ''
+          }`}>
+            
+            {/* Multiple Page Layers */}
+            {[...Array(8)].map((_, index) => (
+              <div
+                key={index}
+                className={`absolute inset-0 bg-white rounded-lg border border-gray-200 shadow-sm transition-all duration-1000 ${
+                  isOpen ? 'transform rotate-y-12' : ''
+                }`}
+                style={{
+                  zIndex: 8 - index,
+                  transform: isOpen 
+                    ? `rotateY(${12 + index * 2}deg) translateX(${index * 0.5}px)` 
+                    : 'rotateY(0deg) translateX(0px)',
+                  transitionDelay: `${index * 50}ms`
+                }}
+              >
+                {/* Page Content */}
+                <div className="absolute inset-2 text-gray-600 text-xs">
+                  <div className="w-full h-0.5 bg-gray-300 rounded-full mb-2"></div>
+                  <div className="w-3/4 h-0.5 bg-gray-300 rounded-full mb-1"></div>
+                  <div className="w-1/2 h-0.5 bg-gray-300 rounded-full mb-2"></div>
+                  <div className="w-full h-0.5 bg-gray-300 rounded-full mb-1"></div>
+                  <div className="w-2/3 h-0.5 bg-gray-300 rounded-full"></div>
+                </div>
+                
+                {/* Page Number */}
+                <div className="absolute bottom-2 right-2 text-xs text-gray-400 font-mono">
+                  {index + 1}
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* Bookmark */}
+          <div className={`absolute -top-2 left-1/2 transform -translate-x-1/2 transition-all duration-500 ${
+            bookmarkBounce ? 'animate-bounce' : ''
+          }`}>
+            <div className="w-3 h-8 bg-gradient-to-b from-red-400 to-red-600 rounded-t-full border border-red-500 shadow-md">
+              <div className="w-2 h-2 bg-white rounded-full mx-auto mt-1 opacity-80"></div>
             </div>
           </div>
 
-          {/* Back Legs - Hidden/Sitting */}
-          <div className="absolute top-20 left-2">
-            <div className="w-6 h-4 bg-gradient-to-b from-gray-100 to-white rounded-full border border-gray-300 shadow-md opacity-60">
-              <div className="w-2 h-2 bg-white opacity-40 rounded-full ml-1 mt-1"></div>
+          {/* Page Flip Animation */}
+          {pageFlip && (
+            <div className="absolute inset-0 bg-white rounded-lg border border-gray-200 shadow-lg animate-pulse z-10">
+              <div className="absolute inset-2">
+                <div className="w-full h-0.5 bg-gray-300 rounded-full mb-2"></div>
+                <div className="w-3/4 h-0.5 bg-gray-300 rounded-full mb-1"></div>
+                <div className="w-1/2 h-0.5 bg-gray-300 rounded-full mb-2"></div>
+                <div className="w-full h-0.5 bg-gray-300 rounded-full mb-1"></div>
+                <div className="w-2/3 h-0.5 bg-gray-300 rounded-full"></div>
+              </div>
             </div>
-          </div>
-          <div className="absolute top-20 right-2">
-            <div className="w-6 h-4 bg-gradient-to-b from-gray-100 to-white rounded-full border border-gray-300 shadow-md opacity-60">
-              <div className="w-2 h-2 bg-white opacity-40 rounded-full ml-1 mt-1"></div>
-            </div>
-          </div>
+          )}
 
-          {/* Beautiful Curved Tail */}
-          <div className={`absolute top-8 -right-4 transform transition-all duration-500 ${tailWag ? 'rotate-12 scale-105' : 'rotate-3'}`}>
-            <div className="w-12 h-4 bg-gradient-to-br from-gray-100 to-white rounded-full border border-gray-300 transform rotate-45 shadow-lg">
-              <div className="w-3 h-1 bg-gray-200 rounded-full mt-1.5 ml-2 opacity-60"></div>
-              <div className="absolute top-1 left-2 w-4 h-1.5 bg-white opacity-40 rounded-full blur-sm"></div>
+          {/* Reading Glow Effect */}
+          {isReading && (
+            <div className="absolute inset-0 bg-gradient-to-r from-yellow-200 via-transparent to-yellow-200 opacity-30 rounded-lg animate-pulse"></div>
+          )}
+
+          {/* Sparkle Effect */}
+          {sparkleEffect && (
+            <div className="absolute inset-0 pointer-events-none">
+              {[...Array(6)].map((_, index) => (
+                <div
+                  key={index}
+                  className="absolute w-2 h-2 bg-yellow-300 rounded-full animate-ping"
+                  style={{
+                    top: `${20 + Math.random() * 60}%`,
+                    left: `${20 + Math.random() * 60}%`,
+                    animationDelay: `${index * 100}ms`,
+                    animationDuration: '1s'
+                  }}
+                ></div>
+              ))}
             </div>
-            {/* Tail tip */}
-            <div className="w-8 h-3 bg-gradient-to-br from-gray-100 to-white rounded-full border border-gray-300 transform rotate-45 -mt-1 ml-2 shadow-md">
-              <div className="w-2 h-1 bg-gray-200 rounded-full mt-1 ml-1.5 opacity-60"></div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Voice Status Indicators */}
-      {isVoiceEnabled && (
-        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2">
-          {isRecording && (
-            <div className="flex items-center space-x-2 bg-red-100 px-4 py-2 rounded-full shadow-lg border border-red-200">
-              <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-red-600 font-medium">Listening</span>
-            </div>
-          )}
-          {isSpeaking && (
-            <div className="flex items-center space-x-2 bg-green-100 px-4 py-2 rounded-full shadow-lg border border-green-200">
-              <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-green-600 font-medium">Talking</span>
-            </div>
-          )}
-          {!isRecording && !isSpeaking && (
+      {/* Status Indicators */}
+      {isOpen && (
+        <div className="absolute -top-20 left-1/2 transform -translate-x-1/2">
+          {isReading && (
             <div className="flex items-center space-x-2 bg-blue-100 px-4 py-2 rounded-full shadow-lg border border-blue-200">
               <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-blue-600 font-medium">Ready</span>
+              <span className="text-sm text-blue-600 font-medium">Reading</span>
+            </div>
+          )}
+          {isFlipping && (
+            <div className="flex items-center space-x-2 bg-green-100 px-4 py-2 rounded-full shadow-lg border border-green-200">
+              <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-green-600 font-medium">Flipping...</span>
+            </div>
+          )}
+          {!isReading && !isFlipping && (
+            <div className="flex items-center space-x-2 bg-purple-100 px-4 py-2 rounded-full shadow-lg border border-purple-200">
+              <div className="w-2.5 h-2.5 bg-purple-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-purple-600 font-medium">Open</span>
             </div>
           )}
         </div>
       )}
 
-      {/* Speech Bubbles when talking */}
-      {isSpeaking && (
-        <div className="absolute -top-24 -left-8">
-          <div className="bg-white rounded-2xl px-5 py-3 shadow-lg border border-gray-200 min-w-max">
-            <div className="flex space-x-1.5 items-center">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-            </div>
+      {/* Page Counter */}
+      {isOpen && (
+        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
+          <div className="bg-white rounded-full px-3 py-1 shadow-lg border border-gray-200">
+            <span className="text-xs text-gray-600 font-medium">
+              Page {currentPage} of {totalPages}
+            </span>
           </div>
-          <div className="w-4 h-4 bg-white transform rotate-45 border-r border-b border-gray-200 ml-8 -mt-2"></div>
         </div>
       )}
 
-      {/* Recording Animation */}
-      {isRecording && (
-        <div className="absolute -top-24 -left-10">
-          <div className="bg-red-100 rounded-2xl px-5 py-3 shadow-lg border border-red-200 min-w-max">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-red-600 font-medium">Listening...</span>
-            </div>
+      {/* Closed Book Indicator */}
+      {!isOpen && (
+        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2">
+          <div className="flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-full shadow-lg border border-gray-200">
+            <div className="w-2.5 h-2.5 bg-gray-500 rounded-full animate-pulse"></div>
+            <span className="text-sm text-gray-600 font-medium">Closed</span>
           </div>
-          <div className="w-4 h-4 bg-red-100 transform rotate-45 border-r border-b border-red-200 ml-8 -mt-2"></div>
         </div>
       )}
     </div>

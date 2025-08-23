@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   LogOut, BookOpen, User, Trophy, Calendar, Bell, Search, Menu, X,
-  MessageCircle, Brain, CreditCard, Home, ChevronRight
+  MessageCircle, Brain, CreditCard, Home, ChevronRight, Crown
 } from 'lucide-react';
 import { User as UserType } from '../types/api';
 import { DashboardPage } from './pages/DashboardPage';
@@ -24,6 +24,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUserData, setCurrentUserData] = useState(userData);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Handle URL parameters for tab navigation
   useEffect(() => {
@@ -54,6 +55,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  // Handle logout with confirmation
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false);
+    onLogout();
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutConfirm(false);
   };
 
   // Handle subscription update
@@ -152,6 +167,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-green-500/0 group-hover:from-blue-500/10 group-hover:to-green-500/10 rounded-xl transition-all duration-200"></div>
               </button>
+              
+              {/* Logout Button - Desktop */}
+              <button
+                onClick={handleLogoutClick}
+                className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-xl transition-all duration-200 hover:shadow-md group"
+                title="Logout"
+              >
+                <LogOut className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                <span className="font-medium">Logout</span>
+              </button>
+              
               <div className="flex items-center space-x-4">
                 <div className="text-right">
                   <p className="text-sm font-medium notebook-text">{user.name}</p>
@@ -182,25 +208,59 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
         {isMobileMenuOpen && (
           <div className="md:hidden bg-white/95 border-t border-blue-200 backdrop-blur-xl">
             <div className="px-4 py-4 space-y-4">
-              <div className="flex items-center space-x-4">
+              {/* User Info Section */}
+              <div className="flex items-center space-x-4 p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border border-blue-200">
                 <div className="relative">
-                  <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-                    <User className="h-5 w-5 text-white" />
+                  <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                    <User className="h-6 w-6 text-white" />
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium notebook-text">{user.name}</p>
-                  <p className="text-xs text-blue-600">{user.email}</p>
+                <div className="flex-1">
+                  <p className="text-base font-semibold notebook-text">{user.name}</p>
+                  <p className="text-sm text-blue-600">{user.email}</p>
+                  <p className="text-xs text-gray-500 mt-1">Student</p>
                 </div>
               </div>
+              
+              {/* Quick Actions */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => {
+                    setActiveTab('profile');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex flex-col items-center p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border border-blue-200 hover:from-blue-100 hover:to-blue-200 transition-all duration-200"
+                >
+                  <User className="h-6 w-6 text-blue-600 mb-2" />
+                  <span className="text-sm font-medium text-blue-700">Profile</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('subscription');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex flex-col items-center p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border border-green-200 hover:from-green-100 hover:to-green-200 transition-all duration-200"
+                >
+                  <Crown className="h-6 w-6 text-green-600 mb-2" />
+                  <span className="text-sm font-medium text-green-700">Subscription</span>
+                </button>
+              </div>
+              
+              {/* Logout Button - Enhanced Mobile */}
               <button
-                onClick={onLogout}
-                className="flex items-center space-x-3 text-blue-600 hover:text-blue-800 w-full p-3 rounded-xl hover:bg-blue-100 transition-all duration-200"
+                onClick={handleLogoutClick}
+                className="flex items-center justify-center space-x-3 w-full p-4 bg-gradient-to-r from-red-50 to-red-100 text-red-700 hover:from-red-100 hover:to-red-200 border border-red-200 rounded-xl transition-all duration-200 hover:shadow-md group"
               >
-                <LogOut className="h-5 w-5" />
-                <span>Logout</span>
+                <LogOut className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                <span className="font-semibold">Sign Out</span>
               </button>
+              
+              {/* Additional Info */}
+              <div className="text-center text-xs text-gray-500 pt-2">
+                <p>Vidyabani Learning Platform</p>
+                <p>Version 9.0</p>
+              </div>
             </div>
           </div>
         )}
@@ -239,6 +299,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
                 })}
               </nav>
             </div>
+            
+
           </div>
         </aside>
 
@@ -270,11 +332,57 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
               </button>
             );
           })}
+          
+          {/* Logout Button in Bottom Navigation */}
+          <button
+            onClick={handleLogoutClick}
+            className="flex flex-col items-center justify-center flex-1 h-full text-red-600 hover:text-red-700 transition-colors duration-200"
+            title="Logout"
+          >
+            <LogOut className="h-6 w-6 mb-1" />
+            <span className="text-xs font-medium">Logout</span>
+          </button>
         </div>
       </div>
 
       {/* Bottom padding for mobile to account for bottom navigation */}
       <div className="lg:hidden h-16"></div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="text-center space-y-4">
+              {/* Icon */}
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                <LogOut className="h-8 w-8 text-red-600" />
+              </div>
+              
+              {/* Title and Message */}
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Sign Out</h3>
+                <p className="text-gray-600">Are you sure you want to sign out? You'll need to sign in again to access your account.</p>
+              </div>
+              
+              {/* Action Buttons */}F
+              <div className="flex space-x-3 pt-4">
+                <button
+                  onClick={cancelLogout}
+                  className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors duration-200 font-medium"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
