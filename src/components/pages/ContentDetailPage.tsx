@@ -720,6 +720,33 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
       .highlighted-text[data-highlight-type="section-content"] {
         border-left: 3px solid #8b5cf6;
       }
+      
+      /* Hide scrollbar for mobile */
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      
+      /* Mobile-specific improvements */
+      @media (max-width: 640px) {
+        .mobile-text-wrap {
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          hyphens: auto;
+        }
+        
+        .mobile-flex-wrap {
+          flex-wrap: wrap;
+        }
+        
+        .mobile-gap {
+          gap: 0.5rem;
+        }
+      }
     `;
     document.head.appendChild(style);
     
@@ -1566,111 +1593,122 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
   // If focused item is selected, show the detailed tabbed view
   if (focusedItem) {
     return (
-      <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
-          <div className="flex items-center space-x-3">
+      <div className="space-y-3 sm:space-y-4 lg:space-y-6 px-2 sm:px-0">
+        {/* Header - Fixed mobile layout */}
+        <div className="space-y-3 sm:space-y-4">
+          {/* Main Header Row */}
+          <div className="flex items-start space-x-2 sm:space-x-3">
             <button
               onClick={() => setFocusedItem(null)}
-              className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
+              className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0 mt-1"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
             <div className="min-w-0 flex-1">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{focusedItem.name}</h2>
-              <p className="text-gray-600 text-sm">Study Materials</p>
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-words leading-tight pr-2">{focusedItem.name}</h2>
+              <p className="text-gray-600 text-xs sm:text-sm mt-1">Study Materials</p>
             </div>
           </div>
           
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-            {/* Progress Indicator */}
-            <div className="flex items-center justify-center sm:justify-start space-x-2 px-3 py-2 sm:py-1 bg-gray-100 rounded-lg">
-              <span className="text-xs text-gray-600 font-medium">Progress</span>
-              <div className="w-16 bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${getCurrentProgress()}%` }}
-                ></div>
+          {/* Action Controls - Improved mobile stacking */}
+          <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:space-x-3">
+            {/* Left side controls */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              {/* Progress Indicator */}
+              <div className="flex items-center space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-100 rounded-lg flex-shrink-0">
+                <span className="text-xs text-gray-600 font-medium hidden sm:inline">Progress</span>
+                <span className="text-xs text-gray-600 font-medium sm:hidden">Prog</span>
+                <div className="w-12 sm:w-16 bg-gray-200 rounded-full h-1.5 sm:h-2">
+                  <div 
+                    className="bg-gradient-to-r from-blue-500 to-green-500 h-1.5 sm:h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${getCurrentProgress()}%` }}
+                  ></div>
+                </div>
+                <span className="text-xs text-gray-600 font-medium">{getCurrentProgress()}%</span>
               </div>
-              <span className="text-xs text-gray-600 font-medium">{getCurrentProgress()}%</span>
-            </div>
-            
-            {/* Bookmark Button */}
-            <button
-              onClick={() => toggleBookmark(focusedItem._id || focusedItem.id, focusedItem.name)}
-              className="p-2 text-gray-400 hover:text-yellow-500 rounded-lg hover:bg-yellow-50 transition-colors flex-shrink-0"
-              title="Bookmark this content"
-            >
-              <Star className="h-5 w-5" />
-            </button>
-            
-            {/* Mark as Complete Button */}
-            <button
-              onClick={() => markContentCompleted(focusedItem._id || focusedItem.id, focusedItem.name)}
-              className="px-3 sm:px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-2 flex-shrink-0"
-              title="Mark as completed"
-            >
-              <Check className="h-4 w-4" />
-              <span className="text-sm font-medium">Complete</span>
-            </button>
-            
-            {/* Subscription Status */}
-            <div className="flex items-center justify-center sm:justify-start space-x-2">
-              {hasActiveSubscription() ? (
-                <div className="flex items-center space-x-1 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
-                  <Crown className="h-4 w-4" />
-                  <span>Premium Active</span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-1 bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">
-                  <Lock className="h-4 w-4" />
-                  <span>Free Plan</span>
-                </div>
-              )}
-            </div>
-            
-            {/* Highlighting Controls */}
-            <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-2">
+              
+              {/* Bookmark Button */}
               <button
-                onClick={toggleHighlighting}
-                className={`p-2 rounded-lg transition-colors ${
-                  isHighlighting 
-                    ? 'bg-yellow-500 text-white' 
-                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                }`}
-                title={isHighlighting ? 'Exit highlighting mode' : 'Enter highlighting mode'}
+                onClick={() => toggleBookmark(focusedItem._id || focusedItem.id, focusedItem.name)}
+                className="p-1.5 sm:p-2 text-gray-400 hover:text-yellow-500 rounded-lg hover:bg-yellow-50 transition-colors flex-shrink-0"
+                title="Bookmark this content"
               >
-                <Highlighter className="h-4 w-4" />
+                <Star className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
               
-              {isHighlighting && (
-                <>
-                  <div className="flex items-center space-x-1">
-                    {highlightColors.map((colorOption) => (
-                      <button
-                        key={colorOption.color}
-                        onClick={() => setHighlightColor(colorOption.color)}
-                        className={`w-6 h-6 rounded-full border-2 transition-all ${
-                          highlightColor === colorOption.color 
-                            ? 'border-gray-800 scale-110' 
-                            : 'border-gray-300 hover:border-gray-500'
-                        }`}
-                        style={{ backgroundColor: colorOption.color }}
-                        title={colorOption.name}
-                      />
-                    ))}
+              {/* Mark as Complete Button */}
+              <button
+                onClick={() => markContentCompleted(focusedItem._id || focusedItem.id, focusedItem.name)}
+                className="px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-1 sm:space-x-2 flex-shrink-0"
+                title="Mark as completed"
+              >
+                <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm font-medium">Complete</span>
+              </button>
+            </div>
+
+            {/* Right side controls */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              {/* Subscription Status */}
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                {hasActiveSubscription() ? (
+                  <div className="flex items-center space-x-1 bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm flex-shrink-0">
+                    <Crown className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Premium Active</span>
+                    <span className="sm:hidden">Premium</span>
                   </div>
-                  
-                  <button
-                    onClick={clearAllHighlights}
-                    className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                    title="Clear all highlights"
-                  >
-                    Clear All
-                  </button>
-                </>
-              )}
+                ) : (
+                  <div className="flex items-center space-x-1 bg-yellow-100 text-yellow-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm flex-shrink-0">
+                    <Lock className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Free Plan</span>
+                    <span className="sm:hidden">Free</span>
+                  </div>
+                )}
+              </div>
+              
+              {/* Highlighting Controls */}
+              <div className="flex items-center space-x-1 sm:space-x-2 bg-gray-100 rounded-lg p-1.5 sm:p-2 flex-shrink-0">
+                <button
+                  onClick={toggleHighlighting}
+                  className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
+                    isHighlighting 
+                      ? 'bg-yellow-500 text-white' 
+                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  }`}
+                  title={isHighlighting ? 'Exit highlighting mode' : 'Enter highlighting mode'}
+                >
+                  <Highlighter className="h-3 w-3 sm:h-4 sm:w-4" />
+                </button>
+                
+                {isHighlighting && (
+                  <>
+                    <div className="flex items-center space-x-1">
+                      {highlightColors.map((colorOption) => (
+                        <button
+                          key={colorOption.color}
+                          onClick={() => setHighlightColor(colorOption.color)}
+                          className={`w-4 h-4 sm:w-6 sm:h-6 rounded-full border-2 transition-all ${
+                            highlightColor === colorOption.color 
+                              ? 'border-gray-800 scale-110' 
+                              : 'border-gray-300 hover:border-gray-500'
+                          }`}
+                          style={{ backgroundColor: colorOption.color }}
+                          title={colorOption.name}
+                        />
+                      ))}
+                    </div>
+                    
+                    <button
+                      onClick={clearAllHighlights}
+                      className="px-1.5 sm:px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                      title="Clear all highlights"
+                    >
+                      <span className="hidden sm:inline">Clear All</span>
+                      <span className="sm:hidden">Clear</span>
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -1680,71 +1718,75 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
           <SubscriptionPrompt item={focusedItem} />
         ) : (
           <>
-            {/* Tab Navigation */}
-            <div className="border-b border-gray-200 overflow-x-auto">
-              <nav className="flex space-x-4 sm:space-x-8 min-w-max px-2">
-                {focusedItem.content.imageUrls && focusedItem.content.imageUrls.length > 0 && (
-                  <button
-                    onClick={() => handleTabChange('images')}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                      activeTab === 'images'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    Images ({focusedItem.content.imageUrls.length})
-                  </button>
-                )}
-                {focusedItem.content.text && (
-                  <button
-                    onClick={() => handleTabChange('text')}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                      activeTab === 'text'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    Notes
-                  </button>
-                )}
-                {focusedItem.content.videoUrl && (
-                  <button
-                    onClick={() => handleTabChange('video')}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                      activeTab === 'video'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    Video
-                  </button>
-                )}
-                {focusedItem.content.pdfUrl && (
-                  <button
-                    onClick={() => handleTabChange('pdf')}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                      activeTab === 'pdf'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    PDF
-                  </button>
-                )}
-              </nav>
+            {/* Tab Navigation - Fixed mobile scrolling */}
+            <div className="border-b border-gray-200">
+              <div className="overflow-x-auto scrollbar-hide">
+                <nav className="flex space-x-2 sm:space-x-4 lg:space-x-8 min-w-max px-2 py-1">
+                  {focusedItem.content.imageUrls && focusedItem.content.imageUrls.length > 0 && (
+                    <button
+                      onClick={() => handleTabChange('images')}
+                      className={`py-2 px-2 sm:px-3 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition-colors ${
+                        activeTab === 'images'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <span className="hidden sm:inline">Images</span>
+                      <span className="sm:hidden">Img</span>
+                      <span className="ml-1">({focusedItem.content.imageUrls.length})</span>
+                    </button>
+                  )}
+                  {focusedItem.content.text && (
+                    <button
+                      onClick={() => handleTabChange('text')}
+                      className={`py-2 px-2 sm:px-3 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition-colors ${
+                        activeTab === 'text'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      Notes
+                    </button>
+                  )}
+                  {focusedItem.content.videoUrl && (
+                    <button
+                      onClick={() => handleTabChange('video')}
+                      className={`py-2 px-2 sm:px-3 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition-colors ${
+                        activeTab === 'video'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      Video
+                    </button>
+                  )}
+                  {focusedItem.content.pdfUrl && (
+                    <button
+                      onClick={() => handleTabChange('pdf')}
+                      className={`py-2 px-2 sm:px-3 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition-colors ${
+                        activeTab === 'pdf'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      PDF
+                    </button>
+                  )}
+                </nav>
+              </div>
             </div>
 
             {/* Tab Content */}
-            <div className="mt-4 sm:mt-6">
+            <div className="mt-3 sm:mt-4 lg:mt-6">
               {activeTab === 'images' && focusedItem.content.imageUrls && (
-                <div className="space-y-3 sm:space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                <div className="space-y-2 sm:space-y-3 lg:space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
                     {focusedItem.content.imageUrls.map((imageUrl: string, index: number) => (
                       <div key={index} className="relative group cursor-pointer">
                         <img
                           src={imageUrl}
                           alt={`Study image ${index + 1}`}
-                          className="w-full h-48 sm:h-64 object-cover rounded-lg shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
+                          className="w-full h-32 sm:h-48 lg:h-64 object-cover rounded-lg shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
                           onClick={() => handleImageClick(imageUrl, focusedItem.content.imageUrls, index)}
                           onError={(e) => {
                             console.error('Image failed to load:', imageUrl);
@@ -1754,8 +1796,9 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                             console.log('Image loaded successfully:', imageUrl);
                           }}
                         />
-                        <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded-full">
-                          Click to view
+                        <div className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-black bg-opacity-50 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
+                          <span className="hidden sm:inline">Click to view</span>
+                          <span className="sm:hidden">View</span>
                         </div>
                       </div>
                     ))}
@@ -1764,39 +1807,39 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
               )}
 
               {activeTab === 'text' && focusedItem.content.text && (
-                <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 md:p-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 md:mb-6">Study Notes</h3>
+                <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 lg:p-6">
+                  <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 lg:mb-6">Study Notes</h3>
                   
                   {/* Highlighting Instructions */}
                   {isHighlighting && (
-                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <div className="flex items-center space-x-2 text-yellow-800">
-                        <Highlighter className="h-4 w-4" />
-                        <span className="text-sm font-medium">Highlighting Mode Active</span>
+                        <Highlighter className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="text-xs sm:text-sm font-medium">Highlighting Mode Active</span>
                       </div>
                       <p className="text-xs text-yellow-700 mt-1">
                         Select text in any question, answer, or section content to highlight. Each element maintains its own unique highlights.
                       </p>
                       <div className="mt-2 flex items-center space-x-2 text-xs text-yellow-600">
-                        <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-400 rounded-full"></span>
                         <span>Individual element highlighting</span>
-                        <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-400 rounded-full"></span>
                       </div>
                     </div>
                   )}
                   
                   <div 
-                    className="space-y-3 sm:space-y-4 md:space-y-6"
+                    className="space-y-3 sm:space-y-4 lg:space-y-6"
                     onMouseUp={() => handleCrossElementSelection()}
                   >
                     {formatStudyNotes(focusedItem.content.text).map((section, sectionIndex) => (
                       <div key={sectionIndex} className="space-y-3 sm:space-y-4">
                         {/* Section Title */}
                         {section.title && (
-                          <div className="border-b-2 border-blue-200 pb-2">
-                            <h4 className="text-base sm:text-lg md:text-xl font-bold text-blue-800 break-words">{section.title}</h4>
+                          <div className="border-b-2 border-blue-200 pb-2 sm:pb-3">
+                            <h4 className="text-sm sm:text-base lg:text-lg font-bold text-blue-800 break-words leading-tight">{section.title}</h4>
                             {section.subtitle && (
-                              <p className="text-xs sm:text-sm md:text-base text-blue-600 mt-1 break-words">{section.subtitle}</p>
+                              <p className="text-xs sm:text-sm lg:text-base text-blue-600 mt-1 break-words leading-tight">{section.subtitle}</p>
                             )}
                           </div>
                         )}
@@ -1805,15 +1848,15 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                         {section.qa && section.qa.length > 0 && (
                           <div className="space-y-3 sm:space-y-4">
                             {section.qa.map((item, qaIndex) => (
-                              <div key={qaIndex} className="bg-gray-50 rounded-lg p-3 sm:p-4 md:p-5 border-l-4 border-blue-500">
+                              <div key={qaIndex} className="bg-gray-50 rounded-lg p-3 sm:p-4 lg:p-5 border-l-4 border-blue-500">
                                 {/* Question */}
                                 <div className="mb-2 sm:mb-3">
-                                  <div className="flex items-start space-x-2">
+                                  <div className="flex items-start space-x-2 sm:space-x-3">
                                     <span className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 text-white text-xs sm:text-sm font-bold rounded-full flex items-center justify-center mt-0.5">
                                       Q
                                     </span>
                                     <h5 
-                                      className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 leading-tight break-words flex-1 cursor-text select-text"
+                                      className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 leading-tight break-words flex-1 cursor-text select-text"
                                       data-section={sectionIndex}
                                       data-qa={qaIndex}
                                       data-type="question"
@@ -1826,13 +1869,13 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                                 </div>
                                 
                                 {/* Answer */}
-                                <div className="ml-5 sm:ml-6 md:ml-8">
-                                  <div className="flex items-start space-x-2">
+                                <div className="ml-5 sm:ml-6 lg:ml-8">
+                                  <div className="flex items-start space-x-2 sm:space-x-3">
                                     <span className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-green-500 text-white text-xs sm:text-sm font-bold rounded-full flex items-center justify-center mt-0.5">
                                       A
                                     </span>
                                     <div 
-                                      className="text-xs sm:text-sm md:text-base text-gray-700 leading-relaxed break-words flex-1 cursor-text select-text"
+                                      className="text-sm sm:text-base lg:text-lg text-gray-700 leading-relaxed break-words flex-1 cursor-text select-text"
                                       data-section={sectionIndex}
                                       data-qa={qaIndex}
                                       data-type="answer"
@@ -1850,9 +1893,9 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                         
                         {/* Regular content (non-QA) */}
                         {section.content && (
-                          <div className="bg-blue-50 rounded-lg p-3 sm:p-4 md:p-5 border border-blue-200">
+                          <div className="bg-blue-50 rounded-lg p-3 sm:p-4 lg:p-5 border border-blue-200">
                             <div 
-                              className="text-xs sm:text-sm md:text-base text-gray-700 leading-relaxed break-words cursor-text select-text"
+                              className="text-sm sm:text-base lg:text-lg text-gray-700 leading-relaxed break-words cursor-text select-text"
                               data-section={sectionIndex}
                               data-type="section-content"
                               onMouseUp={() => handleCrossElementSelection()}
@@ -1870,7 +1913,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
 
               {activeTab === 'video' && focusedItem.content.videoUrl && (
                 <div className="space-y-3 sm:space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Video Lesson</h3>
+                  <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900">Video Lesson</h3>
                   <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
                     <iframe
                       src={`https://www.youtube.com/embed/${getYouTubeVideoId(focusedItem.content.videoUrl)}`}
@@ -1885,8 +1928,8 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
               )}
 
               {activeTab === 'pdf' && focusedItem.content.pdfUrl && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Study Guide (PDF)</h3>
+                <div className="space-y-3 sm:space-y-4">
+                  <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900">Study Guide (PDF)</h3>
                   <CustomPDFViewer pdfUrl={focusedItem.content.pdfUrl} />
                 </div>
               )}
@@ -2152,38 +2195,39 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+      {/* Header - Fixed mobile layout */}
+      <div className="space-y-3 sm:space-y-4">
+        {/* Main Header Row */}
+        <div className="flex items-start space-x-2 sm:space-x-4">
           <button
             onClick={onBack}
-            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 mt-1"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
-          <div>
-            <h2 className="text-2xl font-bold text-black">{subcategoryName}</h2>
-            <p className="text-sm text-black">Learning Content</p>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-black break-words leading-tight pr-2 mobile-text-wrap">{subcategoryName}</h2>
+            <p className="text-xs sm:text-sm text-black mt-1">Learning Content</p>
           </div>
         </div>
       </div>
 
       {loading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-white">Loading content...</span>
+        <div className="flex items-center justify-center py-8 sm:py-12">
+          <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2 sm:ml-3 text-white text-sm sm:text-base">Loading content...</span>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-600">{error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
+          <p className="text-red-600 text-sm sm:text-base">{error}</p>
         </div>
       )}
 
       {!loading && !error && content.length > 0 && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {content.map((categoryData) =>
             categoryData.subcategories.map((item, index) => {
               const { theme, IconComponent } = getContentTheme(index);
@@ -2192,21 +2236,18 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                   key={item._id}
                   className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
                 >
-                  {/* Content Header */}
-                  <div className="p-6 border-b border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${theme.icon}`}>
-                          <IconComponent className="h-5 w-5 text-white" />
+                  {/* Content Header - Fixed mobile layout */}
+                  <div className="p-3 sm:p-4 lg:p-6 border-b border-gray-100">
+                    <div className="space-y-2 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
+                      <div className="flex items-start space-x-2 sm:space-x-3">
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center ${theme.icon} flex-shrink-0`}>
+                          <IconComponent className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
-                          {/* <p className="text-sm text-gray-600">
-                            {item.content?.text || 'No description available'}
-                          </p> */}
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 break-words leading-tight mobile-text-wrap">{item.name}</h3>
                         </div>
                       </div>
-                      <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full font-medium self-start sm:self-auto flex-shrink-0">
                         {item.type}
                       </span>
                     </div>
@@ -2214,7 +2255,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
 
                   {/* Content Media */}
                   {item.content && hasMediaContent(item) && (
-                    <div className="p-6 space-y-4">
+                    <div className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
                       {/* Check subscription for premium content */}
                       {requiresSubscription(item) && !hasActiveSubscription() ? (
                         <SubscriptionPrompt item={item} />
@@ -2222,18 +2263,18 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                         <>
                           {/* Images */}
                           {item.content.imageUrls && item.content.imageUrls.length > 0 && (
-                            <div className="space-y-3">
-                              <h4 className="text-sm font-medium text-gray-700 flex items-center">
-                                <Image className="h-4 w-4 mr-2" />
+                            <div className="space-y-2 sm:space-y-3">
+                              <h4 className="text-xs sm:text-sm font-medium text-gray-700 flex items-center">
+                                <Image className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                                 Images ({item.content.imageUrls.length})
                               </h4>
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
                                 {item.content.imageUrls.map((imageUrl, index) => (
                                   <div key={index} className="relative group cursor-pointer">
                                     <img
                                       src={imageUrl}
                                       alt={`Content image ${index + 1}`}
-                                      className="w-full h-48 object-cover rounded-lg hover:shadow-lg transition-all duration-200 hover:scale-105"
+                                      className="w-full h-32 sm:h-40 lg:h-48 object-cover rounded-lg hover:shadow-lg transition-all duration-200 hover:scale-105"
                                       onClick={() => handleImageClick(imageUrl, item.content.imageUrls, index)}
                                       onError={(e) => {
                                         console.error('Image failed to load:', imageUrl);
@@ -2241,8 +2282,8 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                                       }}
                                     />
                                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                      <div className="opacity-0 group-hover:opacity-100 bg-white bg-opacity-90 p-2 rounded-full transition-all duration-200">
-                                        <Maximize2 className="h-4 w-4 text-gray-700" />
+                                      <div className="opacity-0 group-hover:opacity-100 bg-white bg-opacity-90 p-1.5 sm:p-2 rounded-full transition-all duration-200">
+                                        <Maximize2 className="h-3 w-3 sm:h-4 sm:w-4 text-gray-700" />
                                       </div>
                                     </div>
                                   </div>
@@ -2251,58 +2292,17 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                             </div>
                           )}
 
-                          {/* Text Content */}
-                          {/* {item.content.text && (
-                            <div className="space-y-3">
-                              <h4 className="text-sm font-medium text-gray-700 flex items-center">
-                                <FileText className="h-4 w-4 mr-2" />
-                                Description
-                              </h4>
-                              <div className="bg-gray-50 rounded-lg p-4">
-                                <p className="text-gray-700 leading-relaxed">{item.content.text}</p>
-                              </div>
-                            </div>
-                          )} */}
-
-                          {/* Action Buttons */}
-                          <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
-                            {/* {item.content.pdfUrl && (
-                              <button
-                                onClick={() => handleContentClick(item)}
-                                className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-                              >
-                                <Download className="h-4 w-4" />
-                                <span>Download PDF</span>
-                              </button>
-                            )} */}
-                            
-                            {/* {item.content.videoUrl && (
-                              <button
-                                onClick={() => handleContentClick(item)}
-                                className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                              >
-                                <Video className="h-4 w-4" />
-                                <span>Watch Video</span>
-                              </button>
-                            )} */}
-
+                          {/* Action Buttons - Fixed mobile layout */}
+                          <div className="flex flex-wrap gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-gray-100 mobile-flex-wrap mobile-gap">
                             {hasStudyMaterials(item) && (
                               <button 
                                 onClick={() => handleFocusItem(item)}
-                                className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                className="flex items-center space-x-1.5 sm:space-x-2 bg-green-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-green-700 transition-colors text-xs sm:text-sm flex-shrink-0"
                               >
-                                <BookOpen className="h-4 w-4" />
+                                <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
                                 <span>Study Materials</span>
                               </button>
                             )}
-
-                            {/* <button 
-                              onClick={() => handleStartLearning(item._id, item.name)}
-                              className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-                            >
-                              <ChevronRight className="h-4 w-4" />
-                              <span>Start Learning</span>
-                            </button> */}
                           </div>
                         </>
                       )}
@@ -2311,19 +2311,19 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
 
                   {/* If no media content, show a message */}
                   {item.content && !hasMediaContent(item) && (
-                    <div className="p-6">
-                      <div className="text-center py-4">
-                        <BookOpen className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-600 text-sm">No media content available</p>
+                    <div className="p-3 sm:p-4 lg:p-6">
+                      <div className="text-center py-3 sm:py-4">
+                        <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-600 text-xs sm:text-sm">No media content available</p>
                       </div>
                       
                       {/* Action Buttons */}
-                      <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+                      <div className="flex flex-wrap gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-gray-100 mobile-flex-wrap mobile-gap">
                         <button 
                           onClick={() => handleStartLearning(item._id, item.name)}
-                          className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                          className="flex items-center space-x-1.5 sm:space-x-2 bg-green-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-green-700 transition-colors text-xs sm:text-sm flex-shrink-0"
                         >
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                           <span>Start Learning</span>
                         </button>
                       </div>
@@ -2331,8 +2331,8 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                   )}
 
                   {/* Footer */}
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                    <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 bg-gray-50 border-t border-gray-100">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500 space-y-1 sm:space-y-0">
                       <span>ID: {item._id.slice(-8)}</span>
                       <span>Created: {new Date(item.createdAt).toLocaleDateString()}</span>
                     </div>
@@ -2345,9 +2345,9 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
       )}
 
       {!loading && !error && content.length === 0 && (
-        <div className="text-center py-12">
-          <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-white">No content available for this section.</p>
+        <div className="text-center py-8 sm:py-12">
+          <BookOpen className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+          <p className="text-white text-sm sm:text-base">No content available for this section.</p>
         </div>
       )}
 

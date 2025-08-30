@@ -2,20 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Notebook theme base styles */
+/* Vidyavani theme base styles - Yellow background with blue text */
 body {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+  background: #FFD700; /* Bright yellow background */
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
   font-family: 'Georgia', 'Times New Roman', serif;
+  color: #1E3A8A; /* Dark blue text */
 }
 
-/* Notebook paper texture background */
+/* Notebook paper texture background - updated for yellow theme */
 .notebook-bg {
   background-image: 
-    linear-gradient(90deg, transparent 79px, #e5e7eb 79px, #e5e7eb 81px, transparent 81px),
-    linear-gradient(#f8fafc 0px, #f8fafc 100%);
+    linear-gradient(90deg, transparent 79px, #F59E0B 79px, #F59E0B 81px, transparent 81px),
+    linear-gradient(#FFD700 0px, #FFD700 100%);
   background-size: 100% 24px;
   position: fixed;
   top: 0;
@@ -26,7 +27,7 @@ body {
   z-index: 1;
 }
 
-/* Geography/Earth themed background elements */
+/* Geography/Earth themed background elements - updated colors */
 .geography-bg {
   position: fixed;
   top: 0;
@@ -45,7 +46,7 @@ body {
   left: 10%;
   width: 200px;
   height: 200px;
-  background: radial-gradient(circle, #3b82f6 0%, #1e40af 50%, transparent 100%);
+  background: #1E3A8A; /* Dark blue circle */
   border-radius: 50%;
   animation: float 6s ease-in-out infinite;
 }
@@ -57,12 +58,12 @@ body {
   right: 15%;
   width: 150px;
   height: 150px;
-  background: radial-gradient(circle, #10b981 0%, #059669 50%, transparent 100%);
+  background: #2563EB; /* Medium blue circle */
   border-radius: 50%;
   animation: float 8s ease-in-out infinite reverse;
 }
 
-/* Animated stars background - now subtle for notebook theme */
+/* Animated stars background - updated for blue theme */
 .stars {
   position: fixed;
   top: 0;
@@ -75,7 +76,7 @@ body {
 
 .star {
   position: absolute;
-  background: #3b82f6;
+  background: #1E3A8A; /* Dark blue stars */
   border-radius: 50%;
   animation: twinkle 3s infinite ease-in-out;
   opacity: 0.3;
@@ -116,13 +117,13 @@ body {
 .content-wrapper {
   position: relative;
   z-index: 10;
-  color: #1e293b;
+  color: #1E3A8A; /* Dark blue text */
 }
 
-/* Notebook card styles */
+/* Notebook card styles - updated for yellow theme */
 .notebook-card {
-  background: #ffffff;
-  border: 2px solid #e2e8f0;
+  background: #FEF3C7; /* Light yellow background */
+  border: 2px solid #F59E0B; /* Orange border */
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   position: relative;
@@ -136,41 +137,41 @@ body {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #3b82f6, #10b981, #f59e0b, #ef4444);
+  background: #1E3A8A; /* Dark blue top border */
 }
 
-/* Notebook text styles */
+/* Notebook text styles - updated for blue text */
 .notebook-text {
-  color: #1e293b;
+  color: #1E3A8A; /* Dark blue text */
   font-family: 'Georgia', 'Times New Roman', serif;
 }
 
 .notebook-heading {
-  color: #0f172a;
+  color: #1E3A8A; /* Dark blue heading */
   font-weight: bold;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Geography-themed accent colors */
-.geo-blue { color: #1e40af; }
-.geo-green { color: #059669; }
-.geo-orange { color: #d97706; }
-.geo-red { color: #dc2626; }
+/* Vidyavani-themed accent colors - blue variations */
+.geo-blue { color: #1E3A8A; }
+.geo-green { color: #2563EB; }
+.geo-orange { color: #3B82F6; }
+.geo-red { color: #1D4ED8; }
 
-/* Notebook paper lines */
+/* Notebook paper lines - updated for yellow theme */
 .notebook-lines {
   background-image: 
-    linear-gradient(90deg, transparent 79px, #e5e7eb 79px, #e5e7eb 81px, transparent 81px),
-    linear-gradient(#f8fafc 0px, #f8fafc 100%);
+    linear-gradient(90deg, transparent 79px, #F59E0B 79px, #F59E0B 81px, transparent 81px),
+    linear-gradient(#FFD700 0px, #FFD700 100%);
   background-size: 100% 24px;
   background-position: 0 0;
 }
 
-/* Content background with notebook feel */
+/* Content background with notebook feel - updated for yellow theme */
 .content-bg {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(254, 243, 199, 0.9); /* Light yellow with transparency */
   backdrop-filter: blur(10px);
-  border: 1px solid #e2e8f0;
+  border: 1px solid #F59E0B; /* Orange border */
   border-radius: 8px;
 }
 
@@ -214,15 +215,15 @@ body {
   animation: cat-yarn 1.2s infinite;
 }
 
-/* Mobile Navigation Bar Animations */
+/* Mobile Navigation Bar Animations - updated for blue theme */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-5px); }
 }
 
 @keyframes glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
-  50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), 0 0 40px rgba(147, 51, 234, 0.6); }
+  0%, 100% { box-shadow: 0 0 20px rgba(30, 58, 138, 0.5); }
+  50% { box-shadow: 0 0 30px rgba(30, 58, 138, 0.8), 0 0 40px rgba(37, 99, 235, 0.6); }
 }
 
 @keyframes shimmer {
@@ -235,11 +236,11 @@ body {
   50% { opacity: 1; transform: scale(1.05); }
 }
 
-/* Glassmorphism effect for mobile nav */
+/* Glassmorphism effect for mobile nav - updated for yellow theme */
 .mobile-nav-glass {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(254, 243, 199, 0.1); /* Light yellow with transparency */
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.2); /* Orange border */
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
@@ -248,19 +249,19 @@ body {
   animation: float 3s ease-in-out infinite;
 }
 
-/* Glow effect for active items */
+/* Glow effect for active items - updated for blue theme */
 .nav-item-glow {
   animation: glow 2s ease-in-out infinite;
 }
 
-/* Shimmer effect for background */
+/* Shimmer effect for background - updated for yellow theme */
 .nav-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(254, 243, 199, 0.1), transparent);
   background-size: 200% 100%;
   animation: shimmer 3s infinite;
 }
 
-/* Pulse glow for bottom indicator */
+/* Pulse glow for bottom indicator - updated for blue theme */
 .nav-bottom-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
@@ -274,7 +275,7 @@ body {
   transform: translateY(-2px) scale(1.05);
 }
 
-/* Ripple effect */
+/* Ripple effect - updated for blue theme */
 .nav-ripple {
   position: relative;
   overflow: hidden;
@@ -288,7 +289,7 @@ body {
   width: 0;
   height: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(30, 58, 138, 0.3); /* Dark blue with transparency */
   transform: translate(-50%, -50%);
   transition: width 0.6s, height 0.6s;
 }

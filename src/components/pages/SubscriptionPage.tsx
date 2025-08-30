@@ -47,9 +47,9 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ userData, on
         key: orderResponse.key_id,
         amount: orderResponse.amount,
         currency: orderResponse.currency,
-        name: "Vidyabani",
+        name: "Vidyavani",
         description: "Premium Subscription - 1 Year",
-        image: "https://via.placeholder.com/150x50?text=Vidyabani",
+        image: "https://via.placeholder.com/150x50?text=Vidyavani",
         order_id: orderResponse.orderId,
         handler: async function (response: any) {
           try {
@@ -99,7 +99,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ userData, on
           contact: orderResponse.user.phone
         },
         notes: {
-          address: "Vidyabani Educational Platform"
+          address: "Vidyavani Educational Platform"
         },
         theme: {
           color: "#8B5CF6"

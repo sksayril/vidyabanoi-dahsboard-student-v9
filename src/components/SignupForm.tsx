@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Lock, User, Eye, EyeOff, Phone, BookOpen, ArrowLeft, ArrowRight, Check } from 'lucide-react';
-import { AnimatedBook } from './AnimatedBook';
 import { getParentCategories, getSubcategories, registerUser } from '../api';
 import { Category, Subcategory, RegisterRequest } from '../types/api';
 import { ToastContainer, toast } from 'react-toastify';
@@ -229,16 +228,16 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
             <div key={step.key} className="flex items-center">
               <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 text-sm font-medium ${
                 isCompleted 
-                  ? 'bg-green-500 border-green-500 text-white' 
+                  ? 'bg-blue-800 border-blue-800 text-yellow-300' 
                   : isActive 
-                    ? 'bg-blue-500 border-blue-500 text-white' 
-                    : 'bg-gray-400 border-gray-300 text-gray-600'
+                    ? 'bg-blue-600 border-blue-600 text-yellow-300' 
+                    : 'bg-yellow-200 border-yellow-300 text-blue-800'
               }`}>
                 {isCompleted ? <Check className="w-4 h-4" /> : index + 1}
               </div>
               {index < steps.length - 1 && (
                 <div className={`flex-1 h-0.5 mx-2 ${
-                  isCompleted ? 'bg-green-500' : 'bg-gray-300'
+                  isCompleted ? 'bg-blue-800' : 'bg-yellow-300'
                 }`} />
               )}
             </div>
@@ -263,12 +262,12 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
           Full Name
         </label>
         <div className="relative">
-          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-600 w-5 h-5" />
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-gray-500"
+            className="w-full pl-10 pr-4 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-blue-500"
             placeholder="Enter your full name"
             required
           />
@@ -284,12 +283,12 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
           Email Address
         </label>
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-600 w-5 h-5" />
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-gray-500"
+            className="w-full pl-10 pr-4 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-blue-500"
             placeholder="Enter your email"
             required
           />
@@ -301,12 +300,12 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
           Phone Number
         </label>
         <div className="relative">
-          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-600 w-5 h-5" />
           <input
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-gray-500"
+            className="w-full pl-10 pr-4 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-blue-500"
             placeholder="Enter your phone number"
             required
           />
@@ -322,11 +321,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
           Main Category
         </label>
         <div className="relative">
-          <BookOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <BookOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-600 w-5 h-5" />
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none notebook-text"
+            className="w-full pl-10 pr-4 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none notebook-text"
             required
           >
             <option value="">Select a main category</option>
@@ -341,7 +340,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
             )}
           </select>
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </div>
@@ -353,11 +352,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
           Subcategory
         </label>
         <div className="relative">
-          <BookOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <BookOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-600 w-5 h-5" />
           <select
             value={selectedSubcategory}
             onChange={(e) => setSelectedSubcategory(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none notebook-text"
+            className="w-full pl-10 pr-4 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none notebook-text"
             required
             disabled={!selectedCategory || isLoadingSubcategories}
           >
@@ -376,7 +375,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
             ))}
           </select>
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </div>
@@ -392,19 +391,19 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
           Password
         </label>
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-600 w-5 h-5" />
           <input
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-gray-500"
+            className="w-full pl-10 pr-12 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-blue-500"
             placeholder="Create a password"
             required
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-600 hover:text-blue-700"
           >
             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
@@ -416,19 +415,19 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
           Confirm Password
         </label>
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-600 w-5 h-5" />
           <input
             type={showConfirmPassword ? 'text' : 'password'}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-gray-500"
+            className="w-full pl-10 pr-12 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-blue-500"
             placeholder="Confirm your password"
             required
           />
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-600 hover:text-blue-700"
           >
             {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
@@ -457,14 +456,38 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
       <ToastContainer />
       <div className="notebook-card backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-green-500 p-6 text-center">
-          {/* <AnimatedBook className="mx-auto mb-4 w-10 h-10" /> */}
-          <h1 className="text-2xl font-bold text-white mb-2">Vidyabani</h1>
-          <p className="text-blue-50 text-sm">Join our learning adventure! 🌍</p>
+        <div className="bg-blue-800 p-6 sm:p-8 text-center relative overflow-hidden">
+          {/* Background decorative elements */}
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-60"></div>
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-yellow-400/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-8 right-8 w-16 h-16 bg-yellow-400/5 rounded-full blur-2xl"></div>
+          
+          {/* Logo Section */}
+          <div className="relative z-10 pt-4 sm:pt-6 mb-4 sm:mb-6">
+            <div className="flex justify-center">
+              <div className="relative group">
+                <img 
+                  src="/logo.png" 
+                  alt="Vidyavani Logo" 
+                  className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 object-contain drop-shadow-2xl filter brightness-110 hover:scale-110 transition-all duration-500 ease-out"
+                  onError={(e) => {
+                    console.error('Logo image failed to load');
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+               </div>
+            </div>
+          </div>
+          
+          {/* Text Section */}
+          <div className="relative z-10">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-yellow-300 mb-2 sm:mb-3 drop-shadow-lg">Vidyavani</h1>
+            <p className="text-yellow-200 text-sm sm:text-base drop-shadow-md">Join our learning adventure! 🌍</p>
+          </div>
         </div>
 
         {/* Form */}
-        <div className="p-6 bg-white">
+        <div className="p-6 bg-yellow-100">
           {renderStepIndicator()}
           
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -490,7 +513,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
                 <button
                   type="button"
                   onClick={prevStep}
-                  className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-all duration-200"
+                  className="flex-1 flex items-center justify-center gap-2 bg-yellow-200 text-blue-800 py-3 rounded-lg font-medium hover:bg-yellow-300 transition-all duration-200"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Back
@@ -502,11 +525,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
                 <button
                   type="submit"
                   disabled={isLoading || !!success}
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-green-600 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-blue-800 text-yellow-300 py-3 rounded-lg font-semibold hover:bg-blue-900 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-yellow-300 mr-2"></div>
                       Creating Account...
                     </div>
                   ) : success ? (
@@ -520,7 +543,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
                   type="button"
                   onClick={handleNext}
                   disabled={!canProceedToNext()}
-                  className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-green-500 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-green-600 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center gap-2 bg-blue-800 text-yellow-300 py-3 rounded-lg font-semibold hover:bg-blue-900 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                   <ArrowRight className="w-4 h-4" />
@@ -535,7 +558,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
               Already have an account?{' '}
               <button
                 onClick={onSwitchToLogin}
-                className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors duration-200"
+                className="text-blue-800 hover:text-blue-900 font-semibold hover:underline transition-colors duration-200"
               >
                 Sign in here
               </button>

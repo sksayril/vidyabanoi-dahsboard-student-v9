@@ -1,12 +1,13 @@
 import React from 'react';
-import { BookOpen, MessageCircle, CreditCard, User, Home, Brain } from 'lucide-react';
+import { BookOpen, MessageCircle, CreditCard, User, Home, Brain, LogOut } from 'lucide-react';
 
 interface MobileNavbarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  onLogout?: () => void;
 }
 
-export const MobileNavbar: React.FC<MobileNavbarProps> = ({ activeTab, onTabChange }) => {
+export const MobileNavbar: React.FC<MobileNavbarProps> = ({ activeTab, onTabChange, onLogout }) => {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'subjects', label: 'My Learning', icon: BookOpen },
@@ -17,18 +18,19 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({ activeTab, onTabChan
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 md:hidden z-50 pb-2">
-      {/* Enhanced background blur effect */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent backdrop-blur-md"></div>
+    <div className="fixed bottom-0 left-0 right-0 md:hidden z-50">
+      {/* Enhanced background with gradient and blur */}
+      <div className="absolute inset-0 bg-gradient-to-t from-blue-900/90 via-blue-800/80 to-blue-700/70 backdrop-blur-xl"></div>
       
-      {/* Main navigation container with enhanced styling */}
-      <div className="relative mx-4 rounded-3xl bg-gradient-to-r from-white/15 to-white/10 backdrop-blur-2xl border border-white/30 shadow-2xl">
-        {/* Animated background gradient with multiple layers */}
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-white/5 to-transparent"></div>
+      {/* Main navigation container with enhanced mobile app styling */}
+      <div className="relative mx-3 mb-2 rounded-3xl bg-gradient-to-t from-blue-800 via-blue-700 to-blue-600 border border-blue-500/50 shadow-2xl overflow-hidden">
+        {/* Animated background patterns */}
+        <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/5 via-transparent to-yellow-400/5 animate-pulse"></div>
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent"></div>
         
-        {/* Navigation items with enhanced animations */}
-        <div className="relative flex justify-around items-center px-3 py-4">
+        {/* Navigation items with enhanced mobile app feel */}
+        <div className="relative flex justify-around items-center px-2 py-3">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -37,68 +39,99 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({ activeTab, onTabChan
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`group relative flex flex-col items-center py-2 px-2 rounded-2xl transition-all duration-500 ease-out ${
+                className={`group relative flex flex-col items-center py-2 px-1 rounded-2xl transition-all duration-300 ease-out transform ${
                   isActive
-                    ? 'text-white scale-110'
-                    : 'text-gray-400 hover:text-white hover:scale-105'
+                    ? 'text-yellow-400 scale-110 z-10'
+                    : 'text-yellow-300 hover:text-yellow-400 hover:scale-105'
                 }`}
               >
-                {/* Enhanced active indicator with multiple layers */}
+                {/* Enhanced active indicator with mobile app styling */}
                 {isActive && (
                   <>
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 opacity-90 animate-pulse"></div>
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-400 to-purple-500 opacity-60 animate-ping"></div>
-                    <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-blue-400 to-purple-500 opacity-30 blur-sm animate-pulse"></div>
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-yellow-400 to-yellow-500 opacity-95 animate-pulse"></div>
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-yellow-300 to-yellow-400 opacity-70 animate-ping"></div>
+                    <div className="absolute -inset-1 rounded-2xl bg-yellow-400/40 blur-md animate-pulse"></div>
+                    <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-t from-yellow-400/20 to-transparent"></div>
                   </>
                 )}
                 
-                {/* Enhanced icon container with better animations */}
-                <div className={`relative z-10 flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500 ${
+                {/* Enhanced icon container with mobile app animations */}
+                <div className={`relative z-10 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 ${
                   isActive 
-                    ? 'bg-white/25 shadow-xl shadow-blue-500/50 scale-110' 
-                    : 'bg-transparent group-hover:bg-white/15 group-hover:scale-105'
+                    ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 shadow-lg shadow-yellow-500/50 scale-110 ring-2 ring-yellow-300/50' 
+                    : 'bg-transparent group-hover:bg-yellow-400/15 group-hover:scale-105 group-hover:shadow-md'
                 }`}>
-                  {/* Icon with enhanced animations */}
-                  <Icon className={`w-6 h-6 transition-all duration-500 ${
+                  {/* Icon with enhanced mobile app animations */}
+                  <Icon className={`w-5 h-5 transition-all duration-300 ${
                     isActive 
-                      ? 'animate-bounce text-white' 
-                      : 'group-hover:animate-pulse text-gray-300 group-hover:text-white'
+                      ? 'animate-bounce text-blue-900 drop-shadow-sm' 
+                      : 'group-hover:animate-pulse text-yellow-300 group-hover:text-yellow-400'
                   }`} />
                   
-                  {/* Floating particles for active state */}
+                  {/* Enhanced floating particles for active state */}
                   {isActive && (
                     <>
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
-                      <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-pink-400 rounded-full animate-pulse"></div>
+                      <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
+                      <div className="absolute -bottom-0.5 -left-0.5 w-1.5 h-1.5 bg-yellow-300 rounded-full animate-pulse"></div>
+                      <div className="absolute top-1/2 -left-1 w-1 h-1 bg-yellow-200 rounded-full animate-bounce"></div>
                     </>
                   )}
                 </div>
                 
-                {/* Enhanced label with better typography */}
-                <span className={`relative z-10 text-xs font-bold mt-2 transition-all duration-500 ${
+                {/* Enhanced label with mobile app typography */}
+                <span className={`relative z-10 text-xs font-semibold mt-1.5 transition-all duration-300 ${
                   isActive 
-                    ? 'text-white drop-shadow-lg' 
-                    : 'text-gray-400 group-hover:text-white'
+                    ? 'text-yellow-400 drop-shadow-sm' 
+                    : 'text-yellow-300 group-hover:text-yellow-400'
                 }`}>
                   {tab.label}
                 </span>
                 
-                {/* Enhanced ripple effect on click */}
+                {/* Enhanced mobile app ripple effect */}
                 <div className="absolute inset-0 rounded-2xl overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent scale-0 group-active:scale-100 transition-transform duration-300 ease-out"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-yellow-400/40 to-yellow-300/20 scale-0 group-active:scale-100 transition-transform duration-200 ease-out rounded-2xl"></div>
                 </div>
                 
-                {/* Hover glow effect */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/10 group-hover:to-purple-500/10 transition-all duration-500 opacity-0 group-hover:opacity-100"></div>
+                {/* Enhanced hover glow effect */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-yellow-400/0 via-yellow-400/5 to-yellow-400/0 transition-all duration-300 opacity-0 group-hover:opacity-100"></div>
+                
+                {/* Active state indicator dot */}
+                {isActive && (
+                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse shadow-sm"></div>
+                )}
               </button>
             );
           })}
+          
+          {/* Logout button with distinct styling */}
+          <button
+            onClick={onLogout}
+            className="group relative flex flex-col items-center py-2 px-1 rounded-2xl transition-all duration-300 ease-out transform text-red-400 hover:text-red-300 hover:scale-105"
+          >
+            <div className="relative z-10 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 bg-transparent group-hover:bg-red-500/15 group-hover:scale-105 group-hover:shadow-md">
+              <LogOut className="w-5 h-5 transition-all duration-300 group-hover:animate-pulse" />
+            </div>
+            <span className="relative z-10 text-xs font-semibold mt-1.5 transition-all duration-300 group-hover:text-red-300">
+              Logout
+            </span>
+            <div className="absolute inset-0 rounded-2xl overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-t from-red-500/20 to-red-400/10 scale-0 group-active:scale-100 transition-transform duration-200 ease-out rounded-2xl"></div>
+            </div>
+          </button>
         </div>
         
-        {/* Enhanced bottom glow effect */}
-        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-full blur-md animate-pulse"></div>
-        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-blue-300 via-purple-300 to-pink-300 rounded-full blur-sm"></div>
+        {/* Enhanced bottom glow effects */}
+        <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-32 h-3 bg-gradient-to-t from-yellow-400/30 via-yellow-400/20 to-transparent rounded-full blur-lg animate-pulse"></div>
+        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-t from-yellow-300/40 to-transparent rounded-full blur-md"></div>
+        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-t from-yellow-200/50 to-transparent rounded-full blur-sm"></div>
+        
+        {/* Side glow effects */}
+        <div className="absolute top-1/2 -left-2 transform -translate-y-1/2 w-4 h-16 bg-gradient-to-r from-yellow-400/20 to-transparent rounded-full blur-sm"></div>
+        <div className="absolute top-1/2 -right-2 transform -translate-y-1/2 w-4 h-16 bg-gradient-to-l from-yellow-400/20 to-transparent rounded-full blur-sm"></div>
       </div>
+      
+      {/* Bottom safe area for mobile devices */}
+      <div className="h-2 bg-gradient-to-t from-blue-900/50 to-transparent"></div>
     </div>
   );
 };

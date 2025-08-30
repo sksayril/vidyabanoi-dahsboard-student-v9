@@ -254,7 +254,7 @@ export const AnimatedBook: React.FC<AnimatedBookProps> = ({
             <div className="w-2.5 h-2.5 bg-gray-500 rounded-full animate-pulse"></div>
             <span className="text-sm text-gray-600 font-medium">Closed</span>
           </div>
-        </div>
+      </div>
       )}
     </div>
   );

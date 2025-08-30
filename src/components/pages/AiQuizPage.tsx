@@ -1,25 +1,19 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Brain, 
-  Play, 
-  Clock, 
-  Award, 
-  CheckCircle, 
-  XCircle, 
-  ArrowRight, 
-  RefreshCw, 
-  BookOpen,
   Target,
-  Zap,
+  Play,
+  Clock,
+  CheckCircle,
+  XCircle,
+  ArrowRight,
+  RefreshCw,
+  Home,
   Star,
   Trophy,
-  ChevronRight,
-  ChevronLeft,
-  Home,
   Plus,
-  Search,
-  Sparkles,
-  AlertTriangle
+  Edit3,
+  Eye
 } from 'lucide-react';
 import { 
   QuizGenerationRequest, 
@@ -28,11 +22,12 @@ import {
 } from '../../types/api';
 import { generateAIQuiz } from '../../api';
 
-type QuizState = 'topic-selection' | 'generating' | 'quiz-taking' | 'results';
-type ActiveTab = 'available' | 'completed' | 'history';
+type QuizState = 'topic-selection' | 'generating' | 'quiz-taking' | 'results' | 'review';
+type ActiveTab = 'available' | 'history';
+type TopicMode = 'predefined' | 'custom';
 
-// Timer component for quiz
-const QuizTimer: React.FC<{ 
+// Simple Timer Component
+const SimpleTimer: React.FC<{ 
   duration: number; 
   onTimeUp: () => void; 
   isActive: boolean;
@@ -62,22 +57,13 @@ const QuizTimer: React.FC<{
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const getTimeColor = () => {
-    if (timeLeft <= 30) return 'text-red-600';
-    if (timeLeft <= 60) return 'text-yellow-600';
-    return 'text-gray-600';
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
-    <div className={`flex items-center ${getTimeColor()}`}>
+    <div className="flex items-center justify-center bg-blue-800 text-yellow-300 px-4 py-2 rounded-lg">
       <Clock className="h-5 w-5 mr-2" />
-      <span className="font-mono font-semibold">{formatTime(timeLeft)}</span>
-      {timeLeft <= 30 && (
-        <AlertTriangle className="h-4 w-4 ml-2 animate-pulse" />
-      )}
+      <span className="font-bold text-lg">{formatTime(timeLeft)}</span>
     </div>
   );
 };
@@ -88,14 +74,16 @@ interface QuizResult {
   correctAnswers: number;
   timeTaken: number;
   completedAt: string;
+  topic: string;
+  isCustom: boolean;
   answers: {
     questionId: string;
     selectedAnswer: number;
     correctAnswer: number;
     isCorrect: boolean;
+    question: string;
+    options: string[];
   }[];
-  performance: 'Excellent' | 'Good' | 'Needs Improvement';
-  feedback: string;
 }
 
 export const AiQuizPage: React.FC = () => {
@@ -103,7 +91,7 @@ export const AiQuizPage: React.FC = () => {
   const [quizState, setQuizState] = useState<QuizState>('topic-selection');
   const [selectedTopic, setSelectedTopic] = useState('');
   const [customTopic, setCustomTopic] = useState('');
-  const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
+  const [topicMode, setTopicMode] = useState<TopicMode>('predefined');
   const [currentQuiz, setCurrentQuiz] = useState<QuizGenerationResponse['quiz'] | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: number }>({});
@@ -112,17 +100,13 @@ export const AiQuizPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [quizStartTime, setQuizStartTime] = useState<number>(0);
-  const [showTimeUpModal, setShowTimeUpModal] = useState(false);
+  const [questionCount, setQuestionCount] = useState(15); // Default 15 questions
 
-  // Predefined topics based on common subjects
-  const predefinedTopics = [
-    { name: 'Mathematics', topics: ['Algebra', 'Geometry', 'Calculus', 'Statistics', 'Trigonometry'] },
-    { name: 'Science', topics: ['Physics', 'Chemistry', 'Biology', 'Astronomy', 'Earth Science'] },
-    { name: 'History', topics: ['Ancient History', 'World War II', 'American History', 'Ancient Egypt', 'Renaissance'] },
-    { name: 'Geography', topics: ['World Geography', 'Countries and Capitals', 'Climate Zones', 'Oceans and Seas', 'Mountain Ranges'] },
-    { name: 'Literature', topics: ['Shakespeare', 'Poetry', 'Novels', 'Short Stories', 'Drama'] },
-    { name: 'Computer Science', topics: ['Programming', 'Web Development', 'Data Structures', 'Algorithms', 'Database'] },
-  ];
+  // Simple topics for class 5-10 students
+  const topics = {
+    'Mathematics': ['Algebra', 'Geometry', 'Calculus', 'Statistics', 'Trigonometry'],
+    'Science': ['Physics', 'Chemistry', 'Biology']
+  };
 
   useEffect(() => {
     if (activeTab === 'history') {
@@ -131,7 +115,6 @@ export const AiQuizPage: React.FC = () => {
   }, [activeTab]);
 
   const loadQuizHistory = () => {
-    // Load from localStorage
     const savedHistory = localStorage.getItem('quizHistory');
     if (savedHistory) {
       try {
@@ -147,8 +130,7 @@ export const AiQuizPage: React.FC = () => {
     const currentHistory = localStorage.getItem('quizHistory');
     let history = currentHistory ? JSON.parse(currentHistory) : [];
     history.unshift(result);
-    // Keep only last 20 results
-    history = history.slice(0, 20);
+    history = history.slice(0, 20); // Keep last 20 results
     localStorage.setItem('quizHistory', JSON.stringify(history));
     setQuizHistory(history);
   };
@@ -156,17 +138,25 @@ export const AiQuizPage: React.FC = () => {
   const handleTopicSelection = (topic: string) => {
     setSelectedTopic(topic);
     setCustomTopic('');
+    setTopicMode('predefined');
   };
 
   const handleCustomTopic = (topic: string) => {
     setCustomTopic(topic);
     setSelectedTopic('');
+    setTopicMode('custom');
   };
 
   const generateQuiz = async () => {
-    const finalTopic = selectedTopic || customTopic;
+    const finalTopic = topicMode === 'custom' ? customTopic : selectedTopic;
+    
     if (!finalTopic.trim()) {
       setError('Please select or enter a topic');
+      return;
+    }
+
+    if (topicMode === 'custom' && finalTopic.length < 3) {
+      setError('Please enter a topic with at least 3 characters');
       return;
     }
 
@@ -175,11 +165,16 @@ export const AiQuizPage: React.FC = () => {
       setError('');
       setQuizState('generating');
 
+      // Optimized prompt for better quiz generation
+      const optimizedTopic = topicMode === 'custom' 
+        ? `Create a comprehensive quiz about "${finalTopic}" with clear, educational questions suitable for students aged 10-16. Focus on fundamental concepts, key facts, and practical understanding.`
+        : `Create a comprehensive quiz about ${finalTopic} with clear, educational questions suitable for students aged 10-16. Focus on fundamental concepts, key facts, and practical understanding.`;
+
       const request: QuizGenerationRequest = {
-        topic: finalTopic,
+        topic: optimizedTopic,
         subject: 'General Knowledge',
-        difficulty,
-        questionCount: 10
+      difficulty: 'Medium',
+        questionCount: questionCount
       };
 
       const response = await generateAIQuiz(request);
@@ -204,623 +199,579 @@ export const AiQuizPage: React.FC = () => {
     }));
   };
 
-  const handleTimeUp = useCallback(() => {
-    setShowTimeUpModal(true);
-  }, []);
-
-  const calculateResults = (): QuizResult => {
-    if (!currentQuiz) throw new Error('No quiz available');
-
-    const answers = Object.entries(userAnswers).map(([questionId, selectedAnswer]) => {
-      const question = currentQuiz.questions.find(q => q.id === questionId);
-      const correctAnswer = question?.correctAnswer || 0;
-      return {
-        questionId,
-        selectedAnswer,
-        correctAnswer,
-        isCorrect: selectedAnswer === correctAnswer
-      };
-    });
-
-    const correctAnswers = answers.filter(a => a.isCorrect).length;
-    const totalQuestions = currentQuiz.questions.length;
-    const score = Math.round((correctAnswers / totalQuestions) * 100);
-    const timeTaken = Math.floor((Date.now() - quizStartTime) / 1000);
-
-    let performance: 'Excellent' | 'Good' | 'Needs Improvement';
-    let feedback: string;
-
-    if (score >= 90) {
-      performance = 'Excellent';
-      feedback = 'Outstanding performance! You have mastered this topic.';
-    } else if (score >= 70) {
-      performance = 'Good';
-      feedback = 'Good work! You have a solid understanding of this topic.';
-    } else {
-      performance = 'Needs Improvement';
-      feedback = 'Keep practicing! Review the material and try again.';
-    }
-
-    return {
-      score,
-      totalQuestions,
-      correctAnswers,
-      timeTaken,
-      completedAt: new Date().toISOString(),
-      answers,
-      performance,
-      feedback
-    };
-  };
-
-  const submitQuizAnswers = (timeTaken?: number) => {
-    if (!currentQuiz) return;
-
-    try {
-      const result = calculateResults();
-      if (timeTaken) {
-        result.timeTaken = timeTaken;
-      }
-      
-      setQuizResults(result);
-      saveQuizHistory(result);
-      setQuizState('results');
-      setShowTimeUpModal(false);
-    } catch (err) {
-      console.error('Error calculating results:', err);
-      setError('Failed to calculate quiz results');
-    }
-  };
-
-  const resetQuiz = () => {
-    setQuizState('topic-selection');
-    setCurrentQuiz(null);
-    setUserAnswers({});
-    setQuizResults(null);
-    setCurrentQuestionIndex(0);
-    setSelectedTopic('');
-    setCustomTopic('');
-    setError('');
-    setQuizStartTime(0);
-    setShowTimeUpModal(false);
-  };
-
-  const nextQuestion = () => {
-    if (currentQuiz && currentQuestionIndex < currentQuiz.questions.length - 1) {
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < (currentQuiz?.questions.length || 0) - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      finishQuiz();
     }
   };
 
-  const previousQuestion = () => {
+  const handlePreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(prev => prev - 1);
     }
   };
 
-  const renderTopicSelection = () => (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="text-center">
-        <div className="flex items-center justify-center mb-4">
-          <Brain className="h-12 w-12 text-orange-600 mr-3" />
-          <h1 className="text-3xl font-bold text-white">AI Quiz Generator</h1>
+  const finishQuiz = () => {
+    if (!currentQuiz) return;
+
+    const totalQuestions = currentQuiz.questions.length;
+    let correctAnswers = 0;
+    const answers = currentQuiz.questions.map(question => {
+      const userAnswer = userAnswers[question.id];
+      const isCorrect = userAnswer === question.correctAnswer;
+      if (isCorrect) correctAnswers++;
+      
+      return {
+        questionId: question.id,
+        selectedAnswer: userAnswer,
+        correctAnswer: question.correctAnswer,
+        isCorrect,
+        question: question.question,
+        options: question.options
+      };
+    });
+
+    const score = Math.round((correctAnswers / totalQuestions) * 100);
+    const timeTaken = Math.round((Date.now() - quizStartTime) / 1000);
+    const finalTopic = topicMode === 'custom' ? customTopic : selectedTopic;
+
+    const result: QuizResult = {
+      score,
+      totalQuestions,
+      correctAnswers,
+      timeTaken,
+      completedAt: new Date().toISOString(),
+      topic: finalTopic,
+      isCustom: topicMode === 'custom',
+      answers
+    };
+
+    setQuizResults(result);
+    saveQuizHistory(result);
+    setQuizState('results');
+  };
+
+  const handleTimeUp = () => {
+    finishQuiz();
+  };
+
+  const restartQuiz = () => {
+    setQuizState('topic-selection');
+    setSelectedTopic('');
+    setCustomTopic('');
+    setTopicMode('predefined');
+    setCurrentQuiz(null);
+    setCurrentQuestionIndex(0);
+    setUserAnswers({});
+    setQuizResults(null);
+    setError('');
+  };
+
+  const getPerformanceMessage = (score: number) => {
+    if (score >= 80) return { message: 'Excellent!', color: 'text-green-600' };
+    if (score >= 60) return { message: 'Good Job!', color: 'text-blue-600' };
+    return { message: 'Keep Practicing!', color: 'text-orange-600' };
+  };
+
+  // Topic Selection Screen
+  if (quizState === 'topic-selection') {
+    return (
+      <div className="min-h-screen bg-yellow-100 p-4">
+        {/* Header */}
+        <div className="bg-blue-800 rounded-t-xl p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-yellow-300 rounded-lg flex items-center justify-center">
+                <Brain className="h-6 w-6 text-blue-800" />
               </div>
-        <p className="text-white text-lg">Choose a topic and let AI create a personalized quiz for you!</p>
-            </div>
-
-      <div className="bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
-          <Target className="h-6 w-6 mr-2 text-orange-600" />
-          Select Your Topic
-        </h2>
-
-        <div className="mb-8">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">Popular Topics</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {predefinedTopics.map((category) => (
-              <div key={category.name} className="space-y-3">
-                <h4 className="font-medium text-gray-700">{category.name}</h4>
-                <div className="space-y-2">
-                  {category.topics.map((topic) => (
-                    <button
-                      key={topic}
-                      onClick={() => handleTopicSelection(topic)}
-                      className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${
-                        selectedTopic === topic
-                          ? 'border-orange-500 bg-orange-50 text-orange-700'
-                          : 'border-gray-200 hover:border-orange-300 text-gray-700'
-                      }`}
-                    >
-                      {topic}
-                    </button>
-                  ))}
+              <div>
+                <h1 className="text-2xl font-bold text-yellow-300">AI Quiz</h1>
+                <p className="text-yellow-200 text-sm">Learning Platform</p>
+              </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
-            <Plus className="h-5 w-5 mr-2 text-green-600" />
-            Or Enter Your Own Topic
-          </h3>
-          <div className="flex gap-4">
-            <input
-              type="text"
-              value={customTopic}
-              onChange={(e) => handleCustomTopic(e.target.value)}
-              placeholder="Enter any topic you want to learn about..."
-              className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors"
-            />
-            {customTopic && (
+            <div className="flex space-x-2">
               <button
-                onClick={() => handleTopicSelection(customTopic)}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                Use This Topic
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
-            <Zap className="h-5 w-5 mr-2 text-yellow-600" />
-            Choose Difficulty
-          </h3>
-          <div className="flex gap-4">
-            {(['Easy', 'Medium', 'Hard'] as const).map((level) => (
-              <button
-                key={level}
-                onClick={() => setDifficulty(level)}
-                className={`flex-1 py-3 px-6 rounded-lg border-2 transition-all duration-200 ${
-                  difficulty === level
-                    ? 'border-orange-500 bg-orange-50 text-orange-700'
-                    : 'border-gray-200 hover:border-orange-300 text-gray-700'
+                onClick={() => setActiveTab('available')}
+                className={`px-4 py-2 rounded-lg font-medium ${
+                  activeTab === 'available' 
+                    ? 'bg-orange-500 text-white' 
+                    : 'bg-white text-gray-700'
                 }`}
               >
-                <div className="flex items-center justify-center">
-                  {level === 'Easy' && <Star className="h-4 w-4 mr-2" />}
-                  {level === 'Medium' && <Target className="h-4 w-4 mr-2" />}
-                  {level === 'Hard' && <Trophy className="h-4 w-4 mr-2" />}
-                  {level}
-            </div>
+                Available
               </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="text-center">
-          <button
-            onClick={generateQuiz}
-            disabled={loading || (!selectedTopic && !customTopic.trim())}
-            className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl font-semibold text-lg hover:from-orange-600 hover:to-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto"
-          >
-            {loading ? (
-              <>
-                <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
-                Generating Quiz...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-5 w-5 mr-2" />
-                Generate AI Quiz
-              </>
-            )}
-          </button>
-        </div>
+              <button
+                onClick={() => setActiveTab('history')}
+                className={`px-4 py-2 rounded-lg font-medium ${
+                  activeTab === 'history' 
+                    ? 'bg-orange-500 text-white' 
+                    : 'bg-white text-gray-700'
+                }`}
+              >
+                History
+              </button>
+            </div>
       </div>
     </div>
-  );
 
-  const renderQuizTaking = () => {
-    if (!currentQuiz) return null;
-
-    const currentQuestion = currentQuiz.questions[currentQuestionIndex];
-    const totalQuestions = currentQuiz.questions.length;
-    const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
-    const answeredQuestions = Object.keys(userAnswers).length;
-
-    return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">{currentQuiz.title}</h2>
-              <p className="text-gray-600">Question {currentQuestionIndex + 1} of {totalQuestions}</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <QuizTimer 
-                duration={30 * 60} // 30 minutes
-                onTimeUp={handleTimeUp}
-                isActive={quizState === 'quiz-taking'}
-              />
-              <div className="flex items-center text-gray-600">
-                <Target className="h-5 w-5 mr-2" />
-                <span>{currentQuiz.difficulty}</span>
+        {/* Main Content */}
+        <div className="bg-white rounded-xl p-6 shadow-lg">
+          {/* AI Quiz Generator Section */}
+          <div className="text-center mb-8">
+            <div className="relative inline-block mb-4">
+              <div className="w-24 h-24 bg-yellow-200 rounded-full flex items-center justify-center">
+                <Brain className="h-12 w-12 text-orange-500" />
               </div>
             </div>
+            <h2 className="text-3xl font-bold text-blue-800 mb-2">AI Quiz Generator</h2>
+            <p className="text-blue-700 text-lg">Choose a topic and let AI create a personalized quiz for you!</p>
           </div>
 
-          <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
-            <div 
-              className="bg-gradient-to-r from-orange-500 to-red-600 h-3 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            ></div>
-          </div>
-
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <span>Progress: {currentQuestionIndex + 1}/{totalQuestions}</span>
-            <span>Answered: {answeredQuestions}/{totalQuestions}</span>
-          </div>
-              </div>
-
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">
-              {currentQuestion.question}
-            </h3>
-
-            <div className="space-y-4">
-              {currentQuestion.options.map((option, index) => (
+          {/* Question Count Selection */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-blue-800 mb-3">
+              Number of Questions:
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {[10, 15, 20].map((count) => (
                 <button
-                  key={index}
-                  onClick={() => handleAnswerSelect(currentQuestion.id, index)}
-                  className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${
-                    userAnswers[currentQuestion.id] === index
-                      ? 'border-orange-500 bg-orange-50 text-orange-700'
-                      : 'border-gray-200 hover:border-orange-300 text-gray-700'
+                  key={count}
+                  onClick={() => setQuestionCount(count)}
+                  className={`py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+                    questionCount === count
+                      ? 'bg-blue-800 text-yellow-300'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
-                  <div className="flex items-center">
-                    <div className={`w-6 h-6 rounded-full border-2 mr-4 flex items-center justify-center ${
-                      userAnswers[currentQuestion.id] === index
-                        ? 'border-orange-500 bg-orange-500'
-                        : 'border-gray-300'
-                    }`}>
-                      {userAnswers[currentQuestion.id] === index && (
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      )}
-              </div>
-                    <span className="font-medium">{option}</span>
-              </div>
+                  {count} Questions
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+          {/* Topic Mode Selection */}
+          <div className="flex space-x-2 mb-6">
             <button
-              onClick={previousQuestion}
-              disabled={currentQuestionIndex === 0}
-              className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="h-5 w-5 mr-1" />
-              Previous
-            </button>
-
-            <div className="flex items-center space-x-4">
-              {currentQuestionIndex === totalQuestions - 1 ? (
-                <button
-                  onClick={() => submitQuizAnswers()}
-                  disabled={Object.keys(userAnswers).length < totalQuestions}
-                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                >
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                  Submit Quiz
-                </button>
-              ) : (
-                <button
-                  onClick={nextQuestion}
-                  className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900"
-                >
-                  Next
-                  <ChevronRight className="h-5 w-5 ml-1" />
-                </button>
-              )}
-            </div>
-          </div>
-                </div>
-
-        {/* Time Up Modal */}
-        {showTimeUpModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-8 max-w-md mx-4">
-              <div className="text-center">
-                <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Time's Up!</h3>
-                <p className="text-gray-600 mb-6">Your quiz time has expired. Your answers will be submitted automatically.</p>
-                <button
-                  onClick={() => submitQuizAnswers(30 * 60)} // 30 minutes
-                  className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Submit Answers
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-    </div>
-  );
-  };
-
-  const renderResults = () => {
-    if (!quizResults || !currentQuiz) return null;
-
-    const { score, correctAnswers, totalQuestions, timeTaken, performance, feedback, answers } = quizResults;
-
-    return (
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="text-center">
-          <div className="mb-6">
-            {performance === 'Excellent' ? (
-              <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
-            ) : performance === 'Good' ? (
-              <Award className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            ) : (
-              <Target className="h-16 w-16 text-orange-500 mx-auto mb-4" />
-            )}
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Quiz Complete!</h1>
-          <p className="text-gray-600 text-lg">{feedback}</p>
-      </div>
-      
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-orange-600 mb-2">{score}%</div>
-              <div className="text-gray-600">Score</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-green-600 mb-2">{correctAnswers}/{totalQuestions}</div>
-              <div className="text-gray-600">Correct Answers</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-blue-600 mb-2">{Math.round(timeTaken / 60)}m</div>
-              <div className="text-gray-600">Time Taken</div>
-            </div>
-          </div>
-
-          <div className="text-center mb-8">
-            <div className={`inline-flex items-center px-6 py-3 rounded-full text-lg font-semibold ${
-              performance === 'Excellent' ? 'bg-yellow-100 text-yellow-800' :
-              performance === 'Good' ? 'bg-green-100 text-green-800' :
-              'bg-orange-100 text-orange-800'
-            }`}>
-              {performance === 'Excellent' && <Trophy className="h-5 w-5 mr-2" />}
-              {performance === 'Good' && <Award className="h-5 w-5 mr-2" />}
-              {performance === 'Needs Improvement' && <Target className="h-5 w-5 mr-2" />}
-              {performance}
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Question Review</h3>
-            {currentQuiz.questions.map((question, index) => {
-              const answer = answers.find(a => a.questionId === question.id);
-              const isCorrect = answer?.isCorrect || false;
-              
-              return (
-                <div key={question.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <h4 className="font-medium text-gray-900">Question {index + 1}</h4>
-                    <div className="flex items-center">
-                      {isCorrect ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <XCircle className="h-5 w-5 text-red-500" />
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-gray-700 mb-3">{question.question}</p>
-                  <div className="space-y-2">
-                    {question.options.map((option, optionIndex) => (
-                      <div
-                        key={optionIndex}
-                        className={`p-2 rounded ${
-                          optionIndex === question.correctAnswer
-                            ? 'bg-green-100 text-green-800'
-                            : optionIndex === answer?.selectedAnswer && !isCorrect
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-50'
-                        }`}
-                      >
-                        {option}
-                        {optionIndex === question.correctAnswer && (
-                          <CheckCircle className="h-4 w-4 inline ml-2" />
-                        )}
-                        {optionIndex === answer?.selectedAnswer && !isCorrect && (
-                          <XCircle className="h-4 w-4 inline ml-2" />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  {question.explanation && (
-                    <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-blue-800">
-                        <strong>Explanation:</strong> {question.explanation}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center space-x-4">
-          <button
-            onClick={resetQuiz}
-            className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center"
-          >
-            <Home className="h-5 w-5 mr-2" />
-            Take Another Quiz
-          </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center"
-          >
-            <Trophy className="h-5 w-5 mr-2" />
-            View History
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  const renderGenerating = () => (
-    <div className="max-w-2xl mx-auto text-center py-16">
-      <div className="mb-8">
-        <div className="relative">
-          <Brain className="h-20 w-20 text-orange-600 mx-auto mb-4 animate-pulse" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <RefreshCw className="h-8 w-8 text-orange-500 animate-spin" />
-          </div>
-        </div>
-      </div>
-      <h2 className="text-2xl font-bold text-white mb-4">Generating Your Quiz</h2>
-      <p className="text-white text-lg mb-8">Our AI is creating personalized questions just for you...</p>
-      
-      <div className="flex items-center justify-center space-x-2">
-        <div className="w-3 h-3 bg-orange-500 rounded-full animate-bounce"></div>
-        <div className="w-3 h-3 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-        <div className="w-3 h-3 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-      </div>
-    </div>
-  );
-
-  const renderHistory = () => {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">Quiz History</h2>
-          <button
-            onClick={() => setActiveTab('available')}
-            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-          >
-            Take New Quiz
-          </button>
-        </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center">
-              <BookOpen className="h-8 w-8 text-blue-600 mr-3" />
-            <div>
-                <p className="text-2xl font-bold text-gray-900">{quizHistory.length}</p>
-              <p className="text-sm text-gray-600">Total Quizzes</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center">
-            <CheckCircle className="h-8 w-8 text-green-600 mr-3" />
-            <div>
-                <p className="text-2xl font-bold text-gray-900">{quizHistory.length}</p>
-              <p className="text-sm text-gray-600">Completed</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center">
-            <Award className="h-8 w-8 text-yellow-600 mr-3" />
-            <div>
-                <p className="text-2xl font-bold text-gray-900">
-                  {quizHistory.length > 0 
-                    ? Math.round(quizHistory.reduce((sum, quiz) => sum + quiz.score, 0) / quizHistory.length)
-                    : 0}%
-                </p>
-              <p className="text-sm text-gray-600">Average Score</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center">
-              <Clock className="h-8 w-8 text-purple-600 mr-3" />
-            <div>
-                <p className="text-2xl font-bold text-gray-900">
-                  {Math.round(quizHistory.reduce((sum, quiz) => sum + quiz.timeTaken, 0) / 60)}h
-                </p>
-              <p className="text-sm text-gray-600">Study Time</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Quizzes</h3>
-          </div>
-          <div className="divide-y divide-gray-200">
-            {quizHistory.map((quiz, index) => (
-              <div key={index} className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-gray-900">Quiz #{index + 1}</h4>
-                    <p className="text-sm text-gray-600">Completed on {new Date(quiz.completedAt).toLocaleDateString()}</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-gray-900">{quiz.score}%</div>
-                    <div className="text-sm text-gray-600">{quiz.correctAnswers}/{quiz.totalQuestions} correct</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {quizHistory.length === 0 && (
-              <div className="p-6 text-center text-gray-500">
-                No quiz history yet. Take your first quiz to see your results here!
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="space-y-6">
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center">
-            <XCircle className="h-5 w-5 text-red-500 mr-2" />
-            <span className="text-red-800">{error}</span>
-          </div>
-        </div>
-      )}
-
-      {quizState === 'topic-selection' && (
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">AI Quiz</h2>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setActiveTab('available')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'available'
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              onClick={() => setTopicMode('predefined')}
+              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+                topicMode === 'predefined'
+                  ? 'bg-blue-800 text-yellow-300'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              Available
+              <Target className="h-5 w-5 inline mr-2" />
+              Predefined Topics
+            </button>
+            <button
+              onClick={() => setTopicMode('custom')}
+              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+                topicMode === 'custom'
+                  ? 'bg-blue-800 text-yellow-300'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              <Edit3 className="h-5 w-5 inline mr-2" />
+              Custom Topic
+            </button>
+              </div>
+
+          {/* Topic Selection */}
+          <div className="space-y-6">
+            {topicMode === 'predefined' ? (
+              <>
+                <div className="flex items-center space-x-2 mb-4">
+                  <Target className="h-6 w-6 text-orange-500" />
+                  <h3 className="text-xl font-bold text-blue-800">Select Your Topic</h3>
+              </div>
+
+                {Object.entries(topics).map(([subject, subjectTopics]) => (
+                  <div key={subject} className="space-y-3">
+                    <h4 className="text-lg font-semibold text-blue-800">{subject}</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      {subjectTopics.map((topic) => (
+                        <button
+                          key={topic}
+                          onClick={() => handleTopicSelection(topic)}
+                          className={`p-4 rounded-lg border-2 transition-all duration-200 ${
+                            selectedTopic === topic
+                              ? 'border-blue-800 bg-blue-50 text-blue-800'
+                              : 'border-gray-300 bg-gray-50 text-gray-700 hover:border-blue-400'
+                          }`}
+                        >
+                          {topic}
+                        </button>
+                      ))}
+              </div>
+            </div>
+                ))}
+              </>
+            ) : (
+              <>
+                <div className="flex items-center space-x-2 mb-4">
+                  <Edit3 className="h-6 w-6 text-orange-500" />
+                  <h3 className="text-xl font-bold text-blue-800">Enter Your Custom Topic</h3>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-blue-800 mb-2">
+                      What would you like to learn about?
+                    </label>
+                    <input
+                      type="text"
+                      value={customTopic}
+                      onChange={(e) => handleCustomTopic(e.target.value)}
+                      placeholder="e.g., Solar System, Ancient Egypt, Programming Basics..."
+                      className="w-full p-4 border-2 border-gray-300 rounded-lg focus:border-blue-800 focus:outline-none text-blue-800 placeholder-gray-500"
+                    />
+                  </div>
+                  
+                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                    <h4 className="font-medium text-blue-800 mb-2">💡 Tips for better quizzes:</h4>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• Be specific (e.g., "Photosynthesis" instead of "Science")</li>
+                      <li>• Use clear, simple language</li>
+                      <li>• Focus on one topic at a time</li>
+                    </ul>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {error && (
+              <div className="text-red-600 text-center bg-red-50 p-3 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            <button
+              onClick={generateQuiz}
+              disabled={!selectedTopic && !customTopic.trim() || loading}
+              className="w-full bg-blue-800 text-yellow-300 py-4 rounded-lg font-bold text-lg hover:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <RefreshCw className="h-5 w-5 animate-spin mr-2" />
+                  Generating Quiz...
+                </div>
+              ) : (
+                <div className="flex items-center justify-center">
+                  <Play className="h-5 w-5 mr-2" />
+                  Start Quiz ({questionCount} Questions)
+            </div>
+              )}
+            </button>
+          </div>
+        </div>
+    </div>
+  );
+  }
+
+  // Quiz Taking Screen
+  if (quizState === 'quiz-taking' && currentQuiz) {
+    const currentQuestion = currentQuiz.questions[currentQuestionIndex];
+    const totalQuestions = currentQuiz.questions.length;
+
+    return (
+      <div className="min-h-screen bg-yellow-100 p-4">
+        {/* Header with Timer */}
+        <div className="bg-blue-800 rounded-t-xl p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Brain className="h-6 w-6 text-yellow-300" />
+              <h1 className="text-xl font-bold text-yellow-300">AI Quiz</h1>
+            </div>
+            <SimpleTimer 
+              duration={questionCount * 60} // 1 minute per question
+              onTimeUp={handleTimeUp}
+              isActive={true}
+            />
+          </div>
+            </div>
+
+        {/* Progress Bar */}
+        <div className="bg-white rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-blue-800 font-medium">Question {currentQuestionIndex + 1} of {totalQuestions}</span>
+            <span className="text-blue-600">{Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100)}%</span>
+            </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-blue-800 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
+            ></div>
+          </div>
+        </div>
+
+        {/* Question Card */}
+        <div className="bg-white rounded-xl p-6 shadow-lg mb-4">
+          <h2 className="text-xl font-bold text-blue-800 mb-6">{currentQuestion.question}</h2>
+          
+          <div className="space-y-3">
+            {currentQuestion.options.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => handleAnswerSelect(currentQuestion.id, index)}
+                className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 ${
+                  userAnswers[currentQuestion.id] === index
+                    ? 'border-blue-800 bg-blue-50 text-blue-800'
+                    : 'border-gray-300 bg-gray-50 text-gray-700 hover:border-blue-400'
+                }`}
+              >
+                <span className="font-medium">{String.fromCharCode(65 + index)}.</span> {option}
+              </button>
+            ))}
+      </div>
+    </div>
+
+        {/* Navigation Buttons */}
+        <div className="flex space-x-4">
+          <button
+            onClick={handlePreviousQuestion}
+            disabled={currentQuestionIndex === 0}
+            className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <button
+            onClick={handleNextQuestion}
+            className="flex-1 bg-blue-800 text-yellow-300 py-3 rounded-lg font-medium hover:bg-blue-900"
+          >
+            {currentQuestionIndex === totalQuestions - 1 ? 'Finish Quiz' : 'Next'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Results Screen
+  if (quizState === 'results' && quizResults) {
+    const performance = getPerformanceMessage(quizResults.score);
+
+    return (
+      <div className="min-h-screen bg-yellow-100 p-4">
+        {/* Header */}
+        <div className="bg-blue-800 rounded-t-xl p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Trophy className="h-6 w-6 text-yellow-300" />
+              <h1 className="text-xl font-bold text-yellow-300">Quiz Results</h1>
+            </div>
+          </div>
+        </div>
+
+        {/* Results Card */}
+        <div className="bg-white rounded-xl p-6 shadow-lg mb-4">
+          <div className="text-center mb-6">
+            <div className="w-20 h-20 bg-blue-800 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trophy className="h-10 w-10 text-yellow-300" />
+            </div>
+            <h2 className="text-2xl font-bold text-blue-800 mb-2">{performance.message}</h2>
+            <div className="text-4xl font-bold text-blue-800 mb-2">{quizResults.score}%</div>
+            <p className="text-blue-600">You got {quizResults.correctAnswers} out of {quizResults.totalQuestions} questions correct!</p>
+            
+            {/* Topic Display */}
+            <div className="mt-4 p-3 bg-yellow-100 rounded-lg">
+              <p className="text-blue-800 font-medium">
+                Topic: {quizResults.topic}
+                {quizResults.isCustom && (
+                  <span className="ml-2 text-sm bg-orange-500 text-white px-2 py-1 rounded-full">
+                    Custom
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-yellow-100 p-4 rounded-lg text-center">
+              <div className="text-2xl font-bold text-blue-800">{quizResults.correctAnswers}</div>
+              <div className="text-blue-600">Correct</div>
+            </div>
+            <div className="bg-yellow-100 p-4 rounded-lg text-center">
+              <div className="text-2xl font-bold text-blue-800">{Math.floor(quizResults.timeTaken / 60)}:{(quizResults.timeTaken % 60).toString().padStart(2, '0')}</div>
+              <div className="text-blue-600">Time</div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            <button
+              onClick={() => setQuizState('review')}
+              className="w-full bg-orange-500 text-white py-3 rounded-lg font-bold hover:bg-orange-600"
+            >
+              <Eye className="h-5 w-5 inline mr-2" />
+              Review Answers
+            </button>
+            <button
+              onClick={restartQuiz}
+              className="w-full bg-blue-800 text-yellow-300 py-3 rounded-lg font-bold hover:bg-blue-900"
+            >
+              Take Another Quiz
             </button>
             <button
               onClick={() => setActiveTab('history')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'history'
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className="w-full bg-yellow-200 text-blue-800 py-3 rounded-lg font-bold hover:bg-yellow-300"
             >
-              History
+              View History
             </button>
           </div>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {quizState === 'topic-selection' && activeTab === 'available' && renderTopicSelection()}
-      {quizState === 'topic-selection' && activeTab === 'history' && renderHistory()}
-      {quizState === 'generating' && renderGenerating()}
-      {quizState === 'quiz-taking' && renderQuizTaking()}
-      {quizState === 'results' && renderResults()}
+  // Review Answers Screen
+  if (quizState === 'review' && quizResults) {
+    return (
+      <div className="min-h-screen bg-yellow-100 p-4">
+        {/* Header */}
+        <div className="bg-blue-800 rounded-t-xl p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Eye className="h-6 w-6 text-yellow-300" />
+              <h1 className="text-xl font-bold text-yellow-300">Review Answers</h1>
+            </div>
+            <div className="text-yellow-300 text-sm">
+              {quizResults.correctAnswers}/{quizResults.totalQuestions} Correct
+            </div>
+          </div>
+        </div>
+
+        {/* Review Questions */}
+        <div className="space-y-4">
+          {quizResults.answers.map((answer, index) => (
+            <div key={answer.questionId} className="bg-white rounded-xl p-6 shadow-lg">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-blue-800">Question {index + 1}</h3>
+                <div className="flex items-center space-x-2">
+                  {answer.isCorrect ? (
+                    <CheckCircle className="h-6 w-6 text-green-500" />
+                  ) : (
+                    <XCircle className="h-6 w-6 text-red-500" />
+                  )}
+                </div>
+              </div>
+              
+              <p className="text-blue-800 mb-4">{answer.question}</p>
+              
+              <div className="space-y-2">
+                {answer.options.map((option, optionIndex) => (
+                  <div
+                    key={optionIndex}
+                    className={`p-3 rounded-lg border-2 ${
+                      optionIndex === answer.correctAnswer
+                        ? 'border-green-500 bg-green-50 text-green-800'
+                        : optionIndex === answer.selectedAnswer && !answer.isCorrect
+                        ? 'border-red-500 bg-red-50 text-red-800'
+                        : 'border-gray-200 bg-gray-50 text-gray-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span>
+                        <span className="font-medium">{String.fromCharCode(65 + optionIndex)}.</span> {option}
+                      </span>
+                      <div className="flex items-center space-x-2">
+                        {optionIndex === answer.correctAnswer && (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        )}
+                        {optionIndex === answer.selectedAnswer && !answer.isCorrect && (
+                          <XCircle className="h-4 w-4 text-red-500" />
+                        )}
+                        {optionIndex === answer.selectedAnswer && answer.isCorrect && (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Back Button */}
+        <div className="mt-6">
+          <button
+            onClick={() => setQuizState('results')}
+            className="w-full bg-blue-800 text-yellow-300 py-3 rounded-lg font-bold hover:bg-blue-900"
+          >
+            Back to Results
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // History Tab
+  if (activeTab === 'history') {
+    return (
+      <div className="min-h-screen bg-yellow-100 p-4">
+        {/* Header */}
+        <div className="bg-blue-800 rounded-t-xl p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Star className="h-6 w-6 text-yellow-300" />
+              <h1 className="text-xl font-bold text-yellow-300">Quiz History</h1>
+            </div>
+            <button
+              onClick={() => setActiveTab('available')}
+              className="px-4 py-2 bg-orange-500 text-white rounded-lg font-medium"
+            >
+              Available
+            </button>
+          </div>
+        </div>
+
+        {/* History List */}
+        <div className="bg-white rounded-xl p-6 shadow-lg">
+          {quizHistory.length === 0 ? (
+            <div className="text-center py-8">
+              <Star className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-blue-800 mb-2">No Quiz History</h3>
+              <p className="text-blue-600">Complete your first quiz to see your history here!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {quizHistory.map((result, index) => (
+                <div key={index} className="bg-yellow-100 p-4 rounded-lg border border-blue-300">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-bold text-blue-800">{result.topic}</h3>
+                      {result.isCustom && (
+                        <span className="text-xs bg-orange-500 text-white px-2 py-1 rounded-full">
+                          Custom
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-2xl font-bold text-blue-800">{result.score}%</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-blue-600">
+                    <span>{result.correctAnswers}/{result.totalQuestions} correct</span>
+                    <span>{Math.floor(result.timeTaken / 60)}:{(result.timeTaken % 60).toString().padStart(2, '0')}</span>
+                  </div>
+                  <div className="text-xs text-blue-500 mt-1">
+                    {new Date(result.completedAt).toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Loading State
+  return (
+    <div className="min-h-screen bg-yellow-100 flex items-center justify-center">
+      <div className="text-center">
+        <RefreshCw className="h-12 w-12 text-blue-800 animate-spin mx-auto mb-4" />
+        <p className="text-blue-800 font-medium">Loading...</p>
+      </div>
     </div>
   );
 }; 

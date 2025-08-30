@@ -240,7 +240,7 @@ export const LearningPage: React.FC<LearningPageProps> = ({ userData, onNavigate
                     </div>
                     
                     <button 
-                      className={`w-full bg-gradient-to-r from-blue-500 to-green-500 text-white py-4 rounded-2xl hover:shadow-xl transition-all duration-200 flex items-center justify-center text-base font-bold group-hover:scale-105 border-2 border-white shadow-lg`}
+                      className={`w-full bg-blue-800 text-yellow-300 py-4 rounded-2xl hover:shadow-xl transition-all duration-200 flex items-center justify-center text-base font-bold group-hover:scale-105 border-2 border-white shadow-lg`}
                     >
                       <Rocket className="h-5 w-5 mr-3 animate-bounce" />
                       Start Learning Adventure! 🌍

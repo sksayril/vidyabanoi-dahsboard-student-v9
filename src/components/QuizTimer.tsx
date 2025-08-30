@@ -39,7 +39,7 @@ export const QuizTimer: React.FC<QuizTimerProps> = ({ duration, onTimeUp, isActi
   const getTimeColor = () => {
     if (timeLeft <= 30) return 'text-red-600';
     if (timeLeft <= 60) return 'text-yellow-600';
-    return 'text-gray-600';
+    return 'text-blue-700';
   };
 
   return (

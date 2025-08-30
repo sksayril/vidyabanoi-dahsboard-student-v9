@@ -2,6 +2,43 @@ import React, { useState, useEffect } from 'react';
 import { BookOpen, Trophy, Calendar, Bell, Search, ChevronLeft, ChevronRight, Star, Heart, Zap, Target, Clock, CheckCircle, MapPin, RefreshCw, Download } from 'lucide-react';
 import { getHeroBanners } from '../../api';
 
+// Add CSS styles for better text handling
+const addStyles = () => {
+  const style = document.createElement('style');
+  style.textContent = `
+    .learning-card-text {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+      line-height: 1.4;
+    }
+    
+    .learning-card-title {
+      color: #ffffff !important;
+      font-weight: 600;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .learning-card-meta {
+      color: #f3f4f6 !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    
+    @media (max-width: 640px) {
+      .learning-card-text {
+        font-size: 0.875rem;
+        line-height: 1.3;
+      }
+      
+      .learning-card-title {
+        font-size: 0.875rem;
+        line-height: 1.2;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+};
+
 // Learning Journey Widget Component
 const LearningJourneyWidget: React.FC = () => {
   const [learningHistory, setLearningHistory] = useState<any[]>([]);
@@ -14,6 +51,9 @@ const LearningJourneyWidget: React.FC = () => {
   });
 
   useEffect(() => {
+    // Add styles when component mounts
+    addStyles();
+    
     // Load learning history from localStorage
     try {
       const history = JSON.parse(localStorage.getItem('learningHistory') || '[]');
@@ -91,7 +131,7 @@ const LearningJourneyWidget: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-800"></div>
       </div>
     );
   }
@@ -99,10 +139,10 @@ const LearningJourneyWidget: React.FC = () => {
   if (learningHistory.length === 0) {
     return (
       <div className="text-center py-8">
-        <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <h4 className="text-lg font-medium notebook-heading mb-2">Start Your Learning Journey</h4>
-        <p className="text-gray-500 mb-4">Begin exploring study materials to see your progress here</p>
-        <button className="px-6 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-lg hover:from-blue-600 hover:to-green-600 transition-all duration-200">
+        <BookOpen className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
+        <h4 className="text-lg font-medium notebook-heading mb-2 text-yellow-400">Start Your Learning Journey</h4>
+        <p className="text-yellow-300 mb-4">Begin exploring study materials to see your progress here</p>
+        <button className="px-6 py-2 bg-blue-800 text-yellow-300 rounded-lg hover:bg-blue-900 transition-all duration-200">
           Start Learning
         </button>
       </div>
@@ -113,33 +153,33 @@ const LearningJourneyWidget: React.FC = () => {
     <div className="space-y-3 sm:space-y-4">
       {/* Learning Statistics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6">
-        <div className="bg-blue-50 rounded-lg p-2 sm:p-3 text-center border border-blue-200">
-          <div className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600">{stats.totalItems}</div>
-          <div className="text-xs text-blue-600">Total Items</div>
+        <div className="bg-blue-800 rounded-lg p-2 sm:p-3 text-center border border-blue-600">
+          <div className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-400">{stats.totalItems}</div>
+          <div className="text-xs text-yellow-300">Total Items</div>
         </div>
-        <div className="bg-green-50 rounded-lg p-2 sm:p-3 text-center border border-green-200">
-          <div className="text-lg sm:text-xl md:text-2xl font-bold text-green-600">{stats.completedItems}</div>
-          <div className="text-xs text-green-600">Completed</div>
+        <div className="bg-blue-800 rounded-lg p-2 sm:p-3 text-center border border-blue-600">
+          <div className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-400">{stats.completedItems}</div>
+          <div className="text-xs text-yellow-300">Completed</div>
         </div>
-        <div className="bg-yellow-50 rounded-lg p-2 sm:p-3 text-center border border-yellow-200">
-          <div className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-600">{stats.bookmarkedItems}</div>
-          <div className="text-xs text-yellow-600">Bookmarked</div>
+        <div className="bg-blue-800 rounded-lg p-2 sm:p-3 text-center border border-blue-600">
+          <div className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-400">{stats.bookmarkedItems}</div>
+          <div className="text-xs text-yellow-300">Bookmarked</div>
         </div>
-        <div className="bg-purple-50 rounded-lg p-2 sm:p-3 text-center border border-purple-200">
-          <div className="text-lg sm:text-xl md:text-2xl font-bold text-purple-600">{stats.totalProgress}%</div>
-          <div className="text-xs text-purple-600">Avg Progress</div>
+        <div className="bg-blue-800 rounded-lg p-2 sm:p-3 text-center border border-blue-600">
+          <div className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-400">{stats.totalProgress}%</div>
+          <div className="text-xs text-yellow-300">Avg Progress</div>
         </div>
       </div>
 
       {/* Refresh Button */}
       <div className="flex flex-col sm:flex-row justify-between sm:justify-end items-start sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
-        <div className="text-xs sm:text-sm text-gray-600 sm:hidden">
+        <div className="text-xs sm:text-sm text-blue-800 sm:hidden">
           <span className="font-medium">Learning Progress</span>
         </div>
         <div className="flex space-x-2">
           <button
             onClick={refreshLearningHistory}
-            className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm text-gray-600 hover:text-blue-600 bg-gray-100 hover:bg-blue-50 rounded-lg transition-colors"
+            className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm text-yellow-300 hover:text-yellow-400 bg-blue-700 hover:bg-blue-600 rounded-lg transition-colors"
             title="Refresh learning history"
           >
             <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -147,7 +187,7 @@ const LearningJourneyWidget: React.FC = () => {
           </button>
           <button
             onClick={exportLearningHistory}
-            className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm text-gray-600 hover:text-blue-600 bg-gray-100 hover:bg-blue-50 rounded-lg transition-colors"
+            className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm text-yellow-300 hover:text-yellow-400 bg-blue-700 hover:bg-blue-600 rounded-lg transition-colors"
             title="Export learning history"
           >
             <Download className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -160,12 +200,12 @@ const LearningJourneyWidget: React.FC = () => {
         <div
           key={item.contentId}
           onClick={() => handleContinueLearning(item)}
-          className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 md:space-x-4 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl border border-gray-200 hover:bg-gray-100 hover:border-blue-300 transition-all duration-200 cursor-pointer group"
+          className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 md:space-x-4 p-3 sm:p-4 bg-blue-800 rounded-lg sm:rounded-xl border border-blue-600 hover:bg-blue-700 hover:border-blue-500 transition-all duration-200 cursor-pointer group"
         >
           {/* Content Icon */}
           <div className="flex-shrink-0">
             <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center ${
-              item.completed ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+              item.completed ? 'bg-yellow-500 text-blue-900' : 'bg-yellow-400 text-blue-900'
             }`}>
               {item.completed ? (
                 <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -178,23 +218,23 @@ const LearningJourneyWidget: React.FC = () => {
           {/* Content Details */}
           <div className="flex-1 min-w-0 w-full sm:w-auto">
             <div className="flex items-center space-x-2 mb-1 sm:mb-2">
-              <h4 className="font-semibold notebook-text text-xs sm:text-sm md:text-base truncate">{item.contentName}</h4>
+              <h4 className="font-semibold notebook-text text-xs sm:text-sm md:text-base learning-card-text learning-card-title break-words leading-tight pr-2">{item.contentName}</h4>
               {item.bookmarked && (
-                <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 fill-current flex-shrink-0" />
+                <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400 fill-current flex-shrink-0" />
               )}
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-3 md:space-x-4 text-xs sm:text-sm text-gray-500">
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-3 md:space-x-4 text-xs sm:text-sm learning-card-meta">
               <span className="flex items-center space-x-1">
                 <MapPin className="h-2 w-2 sm:h-3 sm:w-3 flex-shrink-0" />
-                <span className="truncate">{item.mainCategory}</span>
+                <span className="learning-card-text break-words">{item.mainCategory}</span>
               </span>
               <span className="flex items-center space-x-1">
                 <BookOpen className="h-2 w-2 sm:h-3 sm:w-3 flex-shrink-0" />
-                <span className="truncate">{item.subcategoryName}</span>
+                <span className="learning-card-text break-words">{item.subcategoryName}</span>
               </span>
               <span className="flex items-center space-x-1">
                 <Clock className="h-2 w-2 sm:h-3 sm:w-3 flex-shrink-0" />
-                <span className="truncate">{formatTimeAgo(item.lastAccessed)}</span>
+                <span className="learning-card-text break-words">{formatTimeAgo(item.lastAccessed)}</span>
               </span>
             </div>
           </div>
@@ -203,17 +243,17 @@ const LearningJourneyWidget: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 md:space-x-3 w-full sm:w-auto">
             {/* Progress Bar */}
             <div className="w-full sm:w-16 md:w-20">
-              <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2 mb-1">
+              <div className="w-full bg-blue-600 rounded-full h-1.5 sm:h-2 mb-1">
                 <div 
-                  className="bg-gradient-to-r from-blue-500 to-green-500 h-1.5 sm:h-2 rounded-full transition-all duration-300"
+                  className="bg-gradient-to-r from-yellow-400 to-yellow-500 h-1.5 sm:h-2 rounded-full transition-all duration-300"
                   style={{ width: `${item.progress || 0}%` }}
                 ></div>
               </div>
-              <span className="text-xs text-gray-500">{item.progress || 0}%</span>
+              <span className="text-xs text-yellow-200">{item.progress || 0}%</span>
             </div>
 
             {/* Continue Button */}
-            <button className="w-full sm:w-auto px-2 sm:px-3 py-1.5 sm:py-2 md:py-1 bg-gradient-to-r from-blue-500 to-green-500 text-white text-xs rounded-lg hover:from-blue-600 hover:to-green-600 transition-all duration-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+            <button className="w-full sm:w-auto px-2 sm:px-3 py-1.5 sm:py-2 md:py-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-blue-900 text-xs rounded-lg hover:from-yellow-400 hover:to-yellow-500 transition-all duration-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 font-semibold">
               Continue
             </button>
           </div>
@@ -461,9 +501,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
           {/* Welcome Section with Vibrant Design */}
           <div className="text-center w-full px-1 sm:px-0">
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-green-500 text-white px-3 sm:px-4 md:px-6 py-2 sm:py-3 rounded-full shadow-lg mb-2 sm:mb-3 md:mb-4 text-xs sm:text-sm md:text-base">
-              <Star className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
-              <span className="font-semibold">Welcome back, {user.name}! 🌍</span>
+            <div className="inline-flex items-center space-x-2 bg-blue-800 px-3 sm:px-4 md:px-6 py-2 sm:py-3 rounded-full shadow-lg mb-2 sm:mb-3 md:mb-4 text-xs sm:text-sm md:text-base">
+              <Star className="h-3 w-3 bg-white sm:h-4 sm:w-4 md:h-5 md:w-5" />
+              <span className="font-semibold text-white">Welcome back, {user.name}! 🌍</span>
             </div>
             <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold notebook-heading mb-2 break-words px-2 sm:px-0">
               Ready to continue your learning journey?
@@ -479,16 +519,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <div className="w-full max-w-sm sm:max-w-md">
                 <div 
                   onClick={onNavigateToSubscription}
-                  className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 transform hover:scale-105 transition-all duration-300 cursor-pointer hover:shadow-2xl hover:from-purple-500 hover:to-purple-700 group overflow-hidden relative"
+                  className="bg-gradient-to-br from-blue-700 to-blue-900 rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 transform hover:scale-105 transition-all duration-300 cursor-pointer hover:shadow-2xl hover:from-blue-600 hover:to-blue-800 group overflow-hidden relative"
                 >
-                  <div className="absolute top-0 right-0 w-16 sm:w-20 md:w-24 lg:w-32 h-16 sm:h-20 md:h-24 lg:h-32 bg-white/10 rounded-full -translate-y-6 sm:-translate-y-8 md:-translate-y-12 lg:-translate-y-16 translate-x-6 sm:translate-x-8 md:translate-x-12 lg:translate-x-16"></div>
+                  <div className="absolute top-0 right-0 w-16 sm:w-20 md:w-24 lg:w-32 h-16 sm:h-20 md:h-24 lg:h-32 bg-yellow-400/20 rounded-full -translate-y-6 sm:-translate-y-8 md:-translate-y-12 lg:-translate-y-16 translate-x-6 sm:translate-x-8 md:translate-x-12 lg:translate-x-16"></div>
                   <div className="flex items-center relative z-10">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-2 sm:p-3 mr-2 sm:mr-3 md:mr-4 shadow-lg flex-shrink-0 group-hover:bg-white/30 transition-all duration-300">
-                      <Calendar className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-white group-hover:scale-110 transition-transform duration-300" />
+                    <div className="bg-yellow-400/20 backdrop-blur-sm rounded-full p-2 sm:p-3 mr-2 sm:mr-3 md:mr-4 shadow-lg flex-shrink-0 group-hover:bg-yellow-400/30 transition-all duration-300">
+                      <Calendar className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-yellow-400 group-hover:scale-110 transition-transform duration-300" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-white mb-1">Subscription</h3>
-                      <p className="text-purple-100 text-xs sm:text-sm truncate">
+                      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-yellow-400 mb-1">Subscription</h3>
+                      <p className="text-yellow-300 text-xs sm:text-sm truncate">
                         {userData.subscription?.isActive ? 'Active' : 'Inactive'} - {userData.subscription?.plan || 'No plan'}
                       </p>
                     </div>
@@ -503,60 +543,60 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             {/* My Courses - Learning Section */}
             <div 
               onClick={onNavigateToLearning}
-              className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 group hover:from-blue-500 hover:to-blue-700 overflow-hidden relative"
+              className="bg-gradient-to-br from-blue-700 to-blue-900 rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 group hover:from-blue-600 hover:to-blue-800 overflow-hidden relative"
             >
-              <div className="absolute top-0 right-0 w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 bg-white/10 rounded-full -translate-y-6 sm:-translate-y-8 md:-translate-y-12 lg:-translate-y-12 translate-x-6 sm:translate-x-8 md:translate-x-12 lg:translate-x-12"></div>
+              <div className="absolute top-0 right-0 w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 bg-yellow-400/20 rounded-full -translate-y-6 sm:-translate-y-8 md:-translate-y-12 lg:-translate-y-12 translate-x-6 sm:translate-x-8 md:translate-x-12 lg:translate-x-12"></div>
               <div className="text-center relative z-10">
-                <div className="bg-white/20 backdrop-blur-sm rounded-full p-2 sm:p-3 md:p-4 mx-auto mb-2 sm:mb-3 md:mb-4 w-8 sm:w-10 md:w-12 lg:w-16 h-8 sm:h-10 md:h-12 lg:h-16 flex items-center justify-center group-hover:bg-white/30 transition-all duration-300 shadow-lg">
-                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 text-white group-hover:scale-110 transition-transform duration-300" />
+                <div className="bg-yellow-400/20 backdrop-blur-sm rounded-full p-2 sm:p-3 md:p-4 mx-auto mb-2 sm:mb-3 md:mb-4 w-8 sm:w-10 md:w-12 lg:w-16 h-8 sm:h-10 md:h-12 lg:h-16 flex items-center justify-center group-hover:bg-yellow-400/30 transition-all duration-300 shadow-lg">
+                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 text-yellow-400 group-hover:scale-110 transition-transform duration-300" />
                 </div>
-                <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-white mb-1 sm:mb-2">My Courses</h3>
-                <p className="text-blue-100 text-xs sm:text-sm">Continue where you left off</p>
+                <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-yellow-400 mb-1 sm:mb-2">My Courses</h3>
+                <p className="text-yellow-300 text-xs sm:text-sm">Continue where you left off</p>
               </div>
             </div>
 
             {/* Achievements - AI Quiz Section */}
             <div 
               onClick={onNavigateToQuiz}
-              className="bg-gradient-to-br from-green-400 to-green-600 rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 group hover:from-green-500 hover:to-green-700 overflow-hidden relative"
+              className="bg-gradient-to-br from-blue-700 to-blue-900 rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 group hover:from-blue-600 hover:to-blue-800 overflow-hidden relative"
             >
-              <div className="absolute top-0 right-0 w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 bg-white/10 rounded-full -translate-y-6 sm:-translate-y-8 md:-translate-y-12 lg:-translate-y-12 translate-x-6 sm:translate-x-8 md:translate-x-12 lg:translate-x-12"></div>
+              <div className="absolute top-0 right-0 w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 bg-yellow-400/20 rounded-full -translate-y-6 sm:-translate-y-8 md:-translate-y-12 lg:-translate-y-12 translate-x-6 sm:translate-x-8 md:translate-x-12 lg:translate-x-12"></div>
               <div className="text-center relative z-10">
-                <div className="bg-white/20 backdrop-blur-sm rounded-full p-2 sm:p-3 md:p-4 mx-auto mb-2 sm:mb-3 md:mb-4 w-8 sm:w-10 md:w-12 lg:w-16 h-8 sm:h-10 md:h-12 lg:h-16 flex items-center justify-center group-hover:bg-white/30 transition-all duration-300 shadow-lg">
-                  <Trophy className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 text-white group-hover:scale-110 transition-transform duration-300" />
+                <div className="bg-yellow-400/20 backdrop-blur-sm rounded-full p-2 sm:p-3 md:p-4 mx-auto mb-2 sm:mb-3 md:mb-4 w-8 sm:w-10 md:w-12 lg:w-16 h-8 sm:h-10 md:h-12 lg:h-16 flex items-center justify-center group-hover:bg-yellow-400/30 transition-all duration-300 shadow-lg">
+                  <Trophy className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 text-yellow-400 group-hover:scale-110 transition-transform duration-300" />
                 </div>
-                <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-white mb-1 sm:mb-2">Achievements</h3>
-                <p className="text-green-100 text-xs sm:text-sm">View your progress</p>
+                <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-yellow-400 mb-1 sm:mb-2">Achievements</h3>
+                <p className="text-yellow-300 text-xs sm:text-sm">View your progress</p>
               </div>
             </div>
 
             {/* Study Goals - AI Chat Section */}
             <div 
               onClick={onNavigateToChat}
-              className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 group hover:from-purple-500 hover:to-purple-700 overflow-hidden relative"
+              className="bg-gradient-to-br from-blue-700 to-blue-900 rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 group hover:from-blue-600 hover:to-blue-800 overflow-hidden relative"
             >
-              <div className="absolute top-0 right-0 w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 bg-white/10 rounded-full -translate-y-6 sm:-translate-y-8 md:-translate-y-12 lg:-translate-y-12 translate-x-6 sm:translate-x-8 md:translate-x-12 lg:translate-x-12"></div>
+              <div className="absolute top-0 right-0 w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 bg-yellow-400/20 rounded-full -translate-y-6 sm:-translate-y-8 md:-translate-y-12 lg:-translate-y-12 translate-x-6 sm:translate-x-8 md:translate-x-12 lg:translate-x-12"></div>
               <div className="text-center relative z-10">
-                <div className="bg-white/20 backdrop-blur-sm rounded-full p-2 sm:p-3 md:p-4 mx-auto mb-2 sm:mb-3 md:mb-4 w-8 sm:w-10 md:w-12 lg:w-16 h-8 sm:h-10 md:h-12 lg:h-16 flex items-center justify-center group-hover:bg-white/30 transition-all duration-300 shadow-lg">
-                  <Target className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 text-white group-hover:scale-110 transition-transform duration-300" />
+                <div className="bg-yellow-400/20 backdrop-blur-sm rounded-full p-2 sm:p-3 md:p-4 mx-auto mb-2 sm:mb-3 md:mb-4 w-8 sm:w-10 md:w-12 lg:w-16 h-8 sm:h-10 md:h-12 lg:h-16 flex items-center justify-center group-hover:bg-yellow-400/30 transition-all duration-300 shadow-lg">
+                  <Target className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 text-yellow-400 group-hover:scale-110 transition-transform duration-300" />
                 </div>
-                <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-white mb-1 sm:mb-2">Study Goals</h3>
-                <p className="text-purple-100 text-xs sm:text-sm">Set your targets</p>
+                <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-yellow-400 mb-1 sm:mb-2">Study Goals</h3>
+                <p className="text-yellow-300 text-xs sm:text-sm">Set your targets</p>
               </div>
             </div>
 
             {/* Quick Start - AI Chat Section */}
             <div 
               onClick={onNavigateToChat}
-              className="bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 group hover:from-orange-500 hover:to-orange-700 overflow-hidden relative"
+              className="bg-gradient-to-br from-blue-700 to-blue-900 rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 group hover:from-blue-600 hover:to-blue-800 overflow-hidden relative"
             >
-              <div className="absolute top-0 right-0 w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 bg-white/10 rounded-full -translate-y-6 sm:-translate-y-8 md:-translate-y-12 lg:-translate-y-12 translate-x-6 sm:translate-x-8 md:translate-x-12 lg:translate-x-12"></div>
+              <div className="absolute top-0 right-0 w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 bg-yellow-400/20 rounded-full -translate-y-6 sm:-translate-y-8 md:-translate-y-12 lg:-translate-y-12 translate-x-6 sm:translate-x-8 md:translate-x-12 lg:translate-x-12"></div>
               <div className="text-center relative z-10">
-                <div className="bg-white/20 backdrop-blur-sm rounded-full p-2 sm:p-3 md:p-4 mx-auto mb-2 sm:mb-3 md:mb-4 w-8 sm:w-10 md:w-12 lg:w-16 h-8 sm:h-10 md:h-12 lg:h-16 flex items-center justify-center group-hover:bg-white/30 transition-all duration-300 shadow-lg">
-                  <Zap className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 text-white group-hover:scale-110 transition-transform duration-300" />
+                <div className="bg-yellow-400/20 backdrop-blur-sm rounded-full p-2 sm:p-3 md:p-4 mx-auto mb-2 sm:mb-3 md:mb-4 w-8 sm:w-10 md:w-12 lg:w-16 h-8 sm:h-10 md:h-12 lg:h-16 flex items-center justify-center group-hover:bg-yellow-400/30 transition-all duration-300 shadow-lg">
+                  <Zap className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 text-yellow-400 group-hover:scale-110 transition-transform duration-300" />
                 </div>
-                <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-white mb-1 sm:mb-2">Quick Start</h3>
-                <p className="text-orange-100 text-xs sm:text-sm">Jump into learning</p>
+                <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-yellow-400 mb-1 sm:mb-2">Quick Start</h3>
+                <p className="text-yellow-300 text-xs sm:text-sm">Jump into learning</p>
               </div>
             </div>
           </div>
@@ -564,40 +604,40 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           {/* Recent Activity with Colorful Design */}
           <div className="notebook-card p-3 sm:p-4 md:p-6 w-full">
             <div className="flex items-center mb-3 sm:mb-4 md:mb-6">
-              <Heart className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-blue-500 mr-2 sm:mr-3" />
-              <h3 className="text-lg sm:text-xl md:text-2xl font-bold notebook-heading">
+              <Heart className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-yellow-400 mr-2 sm:mr-3" />
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold notebook-heading text-yellow-400">
                 Recent Activity
               </h3>
             </div>
             <div className="space-y-2 sm:space-y-3 md:space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 p-2 sm:p-3 md:p-4 bg-gray-50 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-green-200 shadow-lg">
-                <div className="h-3 w-3 sm:h-4 sm:w-4 bg-green-500 rounded-full animate-pulse flex-shrink-0"></div>
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 p-2 sm:p-3 md:p-4 bg-blue-800 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-blue-600 shadow-lg">
+                <div className="h-3 w-3 sm:h-4 sm:w-4 bg-yellow-400 rounded-full animate-pulse flex-shrink-0"></div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-semibold notebook-text">Completed Physics Chapter 1</p>
-                  <p className="text-xs text-gray-500">2 hours ago</p>
+                  <p className="text-xs sm:text-sm font-semibold text-white">Completed Physics Chapter 1</p>
+                  <p className="text-xs text-yellow-300">2 hours ago</p>
                 </div>
-                <div className="bg-green-100 px-2 sm:px-3 py-1 rounded-full flex-shrink-0">
-                  <span className="text-green-700 text-xs font-semibold">+10 XP</span>
+                <div className="bg-yellow-400/20 px-2 sm:px-3 py-1 rounded-full flex-shrink-0">
+                  <span className="text-yellow-400 text-xs font-semibold">+10 XP</span>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 p-2 sm:p-3 md:p-4 bg-gray-50 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-blue-200 shadow-lg">
-                <div className="h-3 w-3 sm:h-4 sm:w-4 bg-blue-500 rounded-full animate-pulse flex-shrink-0"></div>
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 p-2 sm:p-3 md:p-4 bg-blue-800 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-blue-600 shadow-lg">
+                <div className="h-3 w-3 sm:h-4 sm:w-4 bg-yellow-400 rounded-full animate-pulse flex-shrink-0"></div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-semibold notebook-text">Started Chemistry Quiz</p>
-                  <p className="text-xs text-gray-500">1 day ago</p>
+                  <p className="text-xs sm:text-sm font-semibold text-white">Started Chemistry Quiz</p>
+                  <p className="text-xs text-yellow-300">1 day ago</p>
                 </div>
-                <div className="bg-blue-100 px-2 sm:px-3 py-1 rounded-full flex-shrink-0">
-                  <span className="text-blue-700 text-xs font-semibold">Quiz</span>
+                <div className="bg-yellow-400/20 px-2 sm:px-3 py-1 rounded-full flex-shrink-0">
+                  <span className="text-yellow-400 text-xs font-semibold">Quiz</span>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 p-2 sm:p-3 md:p-4 bg-gray-50 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-purple-200 shadow-lg">
-                <div className="h-3 w-3 sm:h-4 sm:w-4 bg-purple-500 rounded-full animate-pulse flex-shrink-0"></div>
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 p-2 sm:p-3 md:p-4 bg-blue-800 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-blue-600 shadow-lg">
+                <div className="h-3 w-3 sm:h-4 sm:w-4 bg-yellow-400 rounded-full animate-pulse flex-shrink-0"></div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-semibold notebook-text">Earned Achievement Badge</p>
-                  <p className="text-xs text-gray-500">3 days ago</p>
+                  <p className="text-xs sm:text-sm font-semibold text-white">Earned Achievement Badge</p>
+                  <p className="text-xs text-yellow-300">3 days ago</p>
                 </div>
-                <div className="bg-green-100 px-2 sm:px-3 py-1 rounded-full flex-shrink-0">
-                  <span className="text-purple-700 text-xs font-semibold">🏆</span>
+                <div className="bg-yellow-400/20 px-2 sm:px-3 py-1 rounded-full flex-shrink-0">
+                  <span className="text-yellow-400 text-xs font-semibold">🏆</span>
                 </div>
               </div>
             </div>
@@ -607,14 +647,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <div className="notebook-card p-3 sm:p-4 md:p-6 w-full">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 md:mb-6 space-y-2 sm:space-y-0">
               <div className="flex items-center">
-                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-blue-500 mr-2 sm:mr-3" />
-                <h3 className="text-lg sm:text-xl md:text-2xl font-bold notebook-heading">
+                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-yellow-400 mr-2 sm:mr-3" />
+                <h3 className="text-lg sm:text-xl md:text-2xl font-bold notebook-heading text-yellow-400">
                   Continue Your Learning Journey 🌍
                 </h3>
               </div>
               <button
                 onClick={onNavigateToLearning}
-                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-lg hover:from-blue-600 hover:to-green-600 transition-all duration-200 text-xs sm:text-sm font-medium"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-blue-900 rounded-lg hover:from-yellow-400 hover:to-yellow-500 transition-all duration-200 text-xs sm:text-sm font-medium font-semibold"
               >
                 View All
               </button>
