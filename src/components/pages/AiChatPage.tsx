@@ -646,7 +646,7 @@ export const AiChatPage: React.FC = () => {
         <div className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} items-start max-w-[90%] lg:max-w-[85%]`}>
           {!isUser && (
             <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0 shadow-md">
-              <Bot className="h-5 w-5 text-yellow-300" />
+              <Bot className="h-5 w-5 text-white" />
             </div>
           )}
           
@@ -654,8 +654,8 @@ export const AiChatPage: React.FC = () => {
           <div
               className={`px-4 py-3 rounded-2xl shadow-sm ${
               isUser
-                  ? 'bg-yellow-400 text-blue-800 rounded-br-md'
-                  : 'bg-blue-600 text-yellow-300 rounded-bl-md border border-blue-500'
+                  ? 'bg-blue-100 text-blue-800 rounded-br-md'
+                  : 'bg-blue-600 text-white rounded-bl-md border border-blue-500'
             }`}
           >
             {msg.contentType === 'image' ? (
@@ -668,14 +668,14 @@ export const AiChatPage: React.FC = () => {
                 )}
               </div>
             ) : (
-                <div className={`text-sm leading-relaxed ${isUser ? 'text-blue-800' : 'text-yellow-300'}`}>
+                <div className={`text-sm leading-relaxed ${isUser ? 'text-blue-800' : 'text-white'}`}>
                 <FormattedText text={msg.content} />
               </div>
             )}
           </div>
             
             {/* Timestamp */}
-            <span className={`text-xs mt-2 ${isUser ? 'text-right text-blue-600' : 'text-yellow-500'}`}>
+            <span className={`text-xs mt-2 ${isUser ? 'text-right text-blue-600' : 'text-blue-200'}`}>
             {formatTimestamp(msg.timestamp)}
           </span>
             
@@ -696,10 +696,10 @@ export const AiChatPage: React.FC = () => {
                 {speakingMessageId === msg._id ? (
                   <button 
                     onClick={() => stopSpeaking()}
-                    className="p-2 rounded-full bg-yellow-100 hover:bg-yellow-200 text-yellow-600 transition-all duration-200 hover:scale-105 group"
+                    className="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition-all duration-200 hover:scale-105 group"
                     title="Stop speaking"
                   >
-                    <div className="w-3.5 h-3.5 bg-yellow-600 rounded-full animate-pulse"></div>
+                    <div className="w-3.5 h-3.5 bg-red-600 rounded-full animate-pulse"></div>
                   </button>
                 ) : (
                   <button 
@@ -748,42 +748,42 @@ export const AiChatPage: React.FC = () => {
         <div className={`absolute inset-0 transition-all duration-1000 ${
       isVoiceEnabled 
             ? 'bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200' 
-            : 'bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-200'
+            : 'bg-gradient-to-br from-white via-blue-50 to-blue-100'
         }`} />
         
         {/* Floating Bubbles */}
         <div className="absolute inset-0 overflow-hidden">
           {/* Large Bubbles */}
           <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-blue-200/30 to-blue-300/30 rounded-full animate-bounce" style={{ animationDelay: '0s', animationDuration: '3s' }} />
-          <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-yellow-200/30 to-yellow-300/30 rounded-full animate-bounce" style={{ animationDelay: '1s', animationDuration: '4s' }} />
-          <div className="absolute bottom-40 left-20 w-28 h-28 bg-gradient-to-br from-blue-200/30 to-blue-300/30 rounded-full animate-bounce" style={{ animationDelay: '2s', animationDuration: '3.5s' }} />
-          <div className="absolute bottom-20 right-10 w-20 h-20 bg-gradient-to-br from-yellow-200/30 to-yellow-300/30 rounded-full animate-bounce" style={{ animationDelay: '0.5s', animationDuration: '4.5s' }} />
+          <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-blue-200/30 to-blue-300/30 rounded-full animate-bounce" style={{ animationDelay: '1s', animationDuration: '4s' }} />
+          <div className="absolute bottom-40 left-20 w-28 h-28 bg-gradient-to-br from-white/30 to-blue-200/30 rounded-full animate-bounce" style={{ animationDelay: '2s', animationDuration: '3.5s' }} />
+          <div className="absolute bottom-20 right-10 w-20 h-20 bg-gradient-to-br from-blue-200/30 to-blue-300/30 rounded-full animate-bounce" style={{ animationDelay: '0.5s', animationDuration: '4.5s' }} />
           
           {/* Medium Bubbles */}
           <div className="absolute top-60 left-1/4 w-16 h-16 bg-gradient-to-br from-blue-200/20 to-blue-300/20 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }} />
-          <div className="absolute top-80 right-1/3 w-12 h-12 bg-gradient-to-br from-yellow-200/20 to-yellow-300/20 rounded-full animate-pulse" style={{ animationDelay: '1.2s' }} />
-          <div className="absolute bottom-60 left-1/3 w-14 h-14 bg-gradient-to-br from-blue-200/20 to-blue-300/20 rounded-full animate-pulse" style={{ animationDelay: '0.8s' }} />
+          <div className="absolute top-80 right-1/3 w-12 h-12 bg-gradient-to-br from-blue-200/20 to-blue-300/20 rounded-full animate-pulse" style={{ animationDelay: '1.2s' }} />
+          <div className="absolute bottom-60 left-1/3 w-14 h-14 bg-gradient-to-br from-white/20 to-blue-200/20 rounded-full animate-pulse" style={{ animationDelay: '0.8s' }} />
           
           {/* Small Bubbles */}
           <div className="absolute top-32 left-1/2 w-8 h-8 bg-gradient-to-br from-blue-200/15 to-blue-300/15 rounded-full animate-ping" style={{ animationDelay: '0.7s' }} />
-          <div className="absolute top-96 right-1/4 w-6 h-6 bg-gradient-to-br from-yellow-200/15 to-yellow-300/15 rounded-full animate-ping" style={{ animationDelay: '1.5s' }} />
-          <div className="absolute bottom-80 left-1/2 w-10 h-10 bg-gradient-to-br from-blue-200/15 to-blue-300/15 rounded-full animate-ping" style={{ animationDelay: '0.2s' }} />
+          <div className="absolute top-96 right-1/4 w-6 h-6 bg-gradient-to-br from-blue-200/15 to-blue-300/15 rounded-full animate-ping" style={{ animationDelay: '1.5s' }} />
+          <div className="absolute bottom-80 left-1/2 w-10 h-10 bg-gradient-to-br from-white/15 to-blue-200/15 rounded-full animate-ping" style={{ animationDelay: '0.2s' }} />
         </div>
         
         {/* Floating Stars */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-16 left-1/3 text-yellow-500/40 animate-pulse" style={{ animationDelay: '0.5s' }}>⭐</div>
-          <div className="absolute top-48 right-16 text-yellow-500/40 animate-pulse" style={{ animationDelay: '1.2s' }}>✨</div>
-          <div className="absolute top-72 left-20 text-yellow-500/40 animate-pulse" style={{ animationDelay: '0.8s' }}>🌟</div>
-          <div className="absolute bottom-32 right-1/3 text-yellow-500/40 animate-pulse" style={{ animationDelay: '1.5s' }}>💫</div>
-          <div className="absolute bottom-64 left-1/4 text-yellow-500/40 animate-pulse" style={{ animationDelay: '0.3s' }}>⭐</div>
+          <div className="absolute top-16 left-1/3 text-blue-500/40 animate-pulse" style={{ animationDelay: '0.5s' }}>⭐</div>
+          <div className="absolute top-48 right-16 text-blue-500/40 animate-pulse" style={{ animationDelay: '1.2s' }}>✨</div>
+          <div className="absolute top-72 left-20 text-blue-500/40 animate-pulse" style={{ animationDelay: '0.8s' }}>🌟</div>
+          <div className="absolute bottom-32 right-1/3 text-blue-500/40 animate-pulse" style={{ animationDelay: '1.5s' }}>💫</div>
+          <div className="absolute bottom-64 left-1/4 text-blue-500/40 animate-pulse" style={{ animationDelay: '0.3s' }}>⭐</div>
         </div>
         
         {/* Floating Hearts */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-24 right-1/4 text-yellow-500/30 animate-bounce" style={{ animationDelay: '0.2s', animationDuration: '2.5s' }}>💖</div>
-          <div className="absolute top-64 left-16 text-yellow-500/30 animate-bounce" style={{ animationDelay: '1.1s', animationDuration: '3s' }}>💝</div>
-          <div className="absolute bottom-48 right-20 text-yellow-500/30 animate-bounce" style={{ animationDelay: '0.6s', animationDuration: '2.8s' }}>💕</div>
+          <div className="absolute top-24 right-1/4 text-blue-500/30 animate-bounce" style={{ animationDelay: '0.2s', animationDuration: '2.5s' }}>💖</div>
+          <div className="absolute top-64 left-16 text-blue-500/30 animate-bounce" style={{ animationDelay: '1.1s', animationDuration: '3s' }}>💝</div>
+          <div className="absolute bottom-48 right-20 text-blue-500/30 animate-bounce" style={{ animationDelay: '0.6s', animationDuration: '2.8s' }}>💕</div>
         </div>
         
         {/* Floating Clouds */}
@@ -795,15 +795,15 @@ export const AiChatPage: React.FC = () => {
         
         {/* Sparkles */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-28 left-1/2 text-yellow-500/25 animate-spin" style={{ animationDelay: '0.1s', animationDuration: '4s' }}>✨</div>
-          <div className="absolute top-88 right-1/4 text-yellow-500/25 animate-spin" style={{ animationDelay: '1.4s', animationDuration: '3.5s' }}>✨</div>
-          <div className="absolute bottom-56 left-1/2 text-yellow-500/25 animate-spin" style={{ animationDelay: '0.7s', animationDuration: '4.2s' }}>✨</div>
+          <div className="absolute top-28 left-1/2 text-blue-500/25 animate-spin" style={{ animationDelay: '0.1s', animationDuration: '4s' }}>✨</div>
+          <div className="absolute top-88 right-1/4 text-blue-500/25 animate-spin" style={{ animationDelay: '1.4s', animationDuration: '3.5s' }}>✨</div>
+          <div className="absolute bottom-56 left-1/2 text-blue-500/25 animate-spin" style={{ animationDelay: '0.7s', animationDuration: '4.2s' }}>✨</div>
         </div>
         
         {/* Rainbow Arcs */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-0 left-0 w-96 h-96 border-8 border-transparent border-t-blue-300/20 border-r-blue-300/20 border-b-blue-300/20 border-l-blue-300/20 rounded-full animate-spin" style={{ animationDuration: '20s' }} />
-          <div className="absolute bottom-0 right-0 w-80 h-80 border-8 border-transparent border-t-yellow-300/20 border-r-yellow-300/20 border-b-yellow-300/20 border-l-yellow-300/20 rounded-full animate-spin" style={{ animationDuration: '25s', animationDirection: 'reverse' }} />
+          <div className="absolute bottom-0 right-0 w-80 h-80 border-8 border-transparent border-t-blue-300/20 border-r-blue-300/20 border-b-blue-300/20 border-l-blue-300/20 rounded-full animate-spin" style={{ animationDuration: '25s', animationDirection: 'reverse' }} />
         </div>
         
         {/* Floating Emojis */}
@@ -817,14 +817,14 @@ export const AiChatPage: React.FC = () => {
         {/* Floating Numbers and Letters */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-24 left-1/5 text-2xl font-bold text-blue-500/30 animate-float" style={{ animationDelay: '0.2s' }}>1</div>
-          <div className="absolute top-64 right-1/5 text-2xl font-bold text-yellow-500/30 animate-float" style={{ animationDelay: '0.9s' }}>2</div>
+          <div className="absolute top-64 right-1/5 text-2xl font-bold text-blue-500/30 animate-float" style={{ animationDelay: '0.9s' }}>2</div>
           <div className="absolute bottom-28 left-1/3 text-2xl font-bold text-blue-500/30 animate-float" style={{ animationDelay: '1.3s' }}>3</div>
-          <div className="absolute bottom-80 right-1/3 text-2xl font-bold text-yellow-500/30 animate-float" style={{ animationDelay: '0.6s' }}>4</div>
+          <div className="absolute bottom-80 right-1/3 text-2xl font-bold text-blue-500/30 animate-float" style={{ animationDelay: '0.6s' }}>4</div>
         </div>
         
         {/* Floating Shapes */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-44 left-1/6 w-6 h-6 bg-yellow-500/20 rotate-45 animate-float" style={{ animationDelay: '0.4s' }} />
+          <div className="absolute top-44 left-1/6 w-6 h-6 bg-blue-500/20 rotate-45 animate-float" style={{ animationDelay: '0.4s' }} />
           <div className="absolute top-76 right-1/6 w-4 h-4 bg-blue-500/20 rounded-full animate-float" style={{ animationDelay: '1.0s' }} />
           <div className="absolute bottom-52 left-1/6 w-5 h-5 bg-blue-500/20 transform rotate-45 animate-float" style={{ animationDelay: '0.8s' }} />
         </div>
@@ -1050,7 +1050,7 @@ export const AiChatPage: React.FC = () => {
                 {isVoiceEnabled && isSpeaking && (
                   <button
                     onClick={stopSpeaking}
-                    className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                    className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                     title="Stop speaking"
                   >
                   <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
@@ -1079,7 +1079,7 @@ export const AiChatPage: React.FC = () => {
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-yellow-50 to-yellow-100 hover:from-yellow-100 hover:to-yellow-200 text-yellow-700 rounded-2xl transition-all duration-300 border border-yellow-200/50 hover:shadow-lg transform hover:scale-105"
+                className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-white to-blue-50 hover:from-blue-50 hover:to-blue-100 text-blue-700 rounded-2xl transition-all duration-300 border border-blue-200/50 hover:shadow-lg transform hover:scale-105"
                 title="Logout"
               >
                 <LogOut className="h-5 w-5" />
@@ -1282,8 +1282,8 @@ export const AiChatPage: React.FC = () => {
                           className={`p-2.5 rounded-lg border-2 transition-all duration-300 text-xs text-gray-700 text-left font-medium hover:shadow-md transform hover:scale-[1.02] ${
                             index === 0 ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300 hover:border-blue-400 hover:bg-blue-200' :
                             index === 1 ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300 hover:border-blue-400 hover:bg-blue-200' :
-                            index === 2 ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-300 hover:border-yellow-400 hover:bg-yellow-200' :
-                            'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-300 hover:border-yellow-400 hover:bg-yellow-200'
+                            index === 2 ? 'bg-gradient-to-r from-white to-blue-50 border-blue-300 hover:border-blue-400 hover:bg-blue-100' :
+                            'bg-gradient-to-r from-white to-blue-50 border-blue-300 hover:border-blue-400 hover:bg-blue-100'
                           }`}
                         >
                           <span className="mr-2">
@@ -1302,11 +1302,11 @@ export const AiChatPage: React.FC = () => {
                         </div>
                         <p className="text-xs font-medium text-blue-700">🖼️ Image Analysis</p>
                       </div>
-                      <div className="p-2 rounded-lg bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 text-center hover:scale-105 transition-transform duration-200">
-                        <div className="w-6 h-6 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-1">
-                          <FileText className="h-3 w-3 text-yellow-600" />
+                      <div className="p-2 rounded-lg bg-gradient-to-r from-white to-blue-50 border border-blue-200 text-center hover:scale-105 transition-transform duration-200">
+                        <div className="w-6 h-6 bg-blue-50 rounded-lg flex items-center justify-center mx-auto mb-1">
+                          <FileText className="h-3 w-3 text-blue-600" />
                         </div>
-                        <p className="text-xs font-medium text-yellow-700">📄 PDF Review</p>
+                        <p className="text-xs font-medium text-blue-700">📄 PDF Review</p>
                       </div>
                     </div>
                   </div>
@@ -1335,7 +1335,7 @@ export const AiChatPage: React.FC = () => {
                           <span className="text-sm text-gray-600 mr-2">🤔 Thinking...</span>
                           <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
                           <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                         </div>
                       </div>
                     </div>
@@ -1453,7 +1453,7 @@ export const AiChatPage: React.FC = () => {
                         onClick={!isVoiceEnabled ? toggleVoice : undefined}
                         className={`p-2 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg ${
                           isHoldRecording 
-                            ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white animate-pulse shadow-xl' 
+                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white animate-pulse shadow-xl' 
                             : isVoiceEnabled
                             ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-xl'
                             : 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-600 hover:from-gray-400 hover:to-gray-500'
@@ -1512,10 +1512,10 @@ export const AiChatPage: React.FC = () => {
                             pdfInputRef.current?.click();
                             setShowUploadMenu(false);
                           }}
-                          className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-yellow-50 transition-colors text-left group"
+                          className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 transition-colors text-left group"
                         >
-                          <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center group-hover:bg-yellow-200 transition-colors">
-                            <FileText className="h-5 w-5 text-yellow-600" />
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                            <FileText className="h-5 w-5 text-blue-600" />
                           </div>
                           <div>
                             <div className="font-medium text-gray-900">Upload PDF</div>
@@ -1547,11 +1547,11 @@ export const AiChatPage: React.FC = () => {
                 <div className="mt-4 flex items-center justify-between text-sm">
                   <span className={`font-medium px-2 py-1 rounded-full ${
                     isHoldRecording 
-                      ? 'bg-yellow-100 text-yellow-700 animate-pulse' 
+                      ? 'bg-blue-100 text-blue-700 animate-pulse' 
                       : isRecording 
-                      ? 'bg-yellow-100 text-yellow-700' 
+                      ? 'bg-blue-100 text-blue-700' 
                       : isSpeaking 
-                      ? 'bg-yellow-100 text-yellow-700'
+                      ? 'bg-blue-100 text-blue-700'
                       : isVoiceEnabled
                       ? 'bg-blue-100 text-blue-700'
                       : 'bg-gray-100 text-gray-600'
@@ -1575,16 +1575,16 @@ export const AiChatPage: React.FC = () => {
                     <div className="flex items-center space-x-1">
                       {isHoldRecording && (
                         <div className="flex items-center space-x-1">
-                          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-                          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                         </div>
                       )}
                       {isRecording && !isHoldRecording && (
-                        <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                     )}
                     {isSpeaking && (
-                        <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                       )}
                       {!isRecording && !isSpeaking && !isHoldRecording && isVoiceEnabled && (
                         <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>

@@ -278,7 +278,7 @@ export const AiQuizPage: React.FC = () => {
   // Topic Selection Screen
   if (quizState === 'topic-selection') {
     return (
-      <div className="min-h-screen bg-yellow-100 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 p-4">
         {/* Header */}
         <div className="bg-blue-800 rounded-t-xl p-4 mb-4">
           <div className="flex items-center justify-between">
@@ -296,7 +296,7 @@ export const AiQuizPage: React.FC = () => {
                 onClick={() => setActiveTab('available')}
                 className={`px-4 py-2 rounded-lg font-medium ${
                   activeTab === 'available' 
-                    ? 'bg-orange-500 text-white' 
+                    ? 'bg-green-500 text-white' 
                     : 'bg-white text-gray-700'
                 }`}
               >

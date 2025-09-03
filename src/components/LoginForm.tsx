@@ -46,11 +46,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToSignup 
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="notebook-card backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header */}
-        <div className="bg-blue-800 p-6 sm:p-8 text-center relative overflow-hidden">
+        <div className="bg-gradient-to-br from-blue-400 via-blue-400 to-blue-400 p-6 sm:p-8 text-center relative overflow-hidden">
           {/* Background decorative elements */}
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-60"></div>
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-yellow-400/10 rounded-full blur-3xl"></div>
-          <div className="absolute top-8 right-8 w-16 h-16 bg-yellow-400/5 rounded-full blur-2xl"></div>
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white to-transparent opacity-60"></div>
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-8 right-8 w-16 h-16 bg-white/5 rounded-full blur-2xl"></div>
           
           {/* Logo Section */}
           <div className="relative z-10 pt-2 sm:pt-4 mb-6 sm:mb-8">
@@ -59,7 +59,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToSignup 
                 <img 
                   src="/logo.png" 
                   alt="Vidyavani Logo" 
-                  className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-72 lg:h-72 xl:w-80 xl:h-80 object-contain drop-shadow-2xl filter brightness-110 hover:scale-110 transition-all duration-500 ease-out"
+                  className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 xl:w-40 xl:h-40 object-contain drop-shadow-2xl filter brightness-110 hover:scale-110 transition-all duration-500 ease-out"
                   onError={(e) => {
                     console.error('Logo image failed to load');
                     e.currentTarget.style.display = 'none';
@@ -71,13 +71,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToSignup 
           
           {/* Text Section */}
           <div className="relative z-10">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-yellow-300 mb-3 sm:mb-4 drop-shadow-lg">Vidyavani</h1>
-            <p className="text-yellow-200 text-sm sm:text-base drop-shadow-md">Welcome back, young learner! 🌍</p>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4 drop-shadow-lg">Vidyavani</h1>
+            <p className="text-blue-100 text-sm sm:text-base drop-shadow-md">Welcome back, young learner! 🌍</p>
           </div>
         </div>
 
         {/* Form */}
-        <div className="p-8 bg-yellow-100">
+        <div className="p-8 bg-white">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
             <div className="relative">
@@ -90,7 +90,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToSignup 
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 notebook-text placeholder-blue-500"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 notebook-text placeholder-gray-500"
                   placeholder="Enter your email"
                   required
                 />
@@ -108,7 +108,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToSignup 
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-12 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 notebook-text placeholder-blue-500"
+                  className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 notebook-text placeholder-gray-500"
                   placeholder="Enter your password"
                   required
                 />
@@ -133,11 +133,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToSignup 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-blue-800 text-yellow-300 py-3 rounded-lg font-semibold hover:bg-blue-900 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-blue-800 text-white py-3 rounded-lg font-semibold hover:bg-blue-900 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-yellow-300 mr-2"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                   Signing In...
                 </div>
               ) : (

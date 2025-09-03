@@ -654,7 +654,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               </div>
               <button
                 onClick={onNavigateToLearning}
-                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-blue-900 rounded-lg hover:from-yellow-400 hover:to-yellow-500 transition-all duration-200 text-xs sm:text-sm font-medium font-semibold"
+                className="w-full text-white sm:w-auto px-3 sm:px-4 py-2 bg-blue-600 rounded-lg hover:from-yellow-400 hover:to-yellow-500 transition-all duration-200 text-xs sm:text-sm font-medium font-semibold"
               >
                 View All
               </button>

@@ -228,16 +228,16 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
             <div key={step.key} className="flex items-center">
               <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 text-sm font-medium ${
                 isCompleted 
-                  ? 'bg-blue-800 border-blue-800 text-yellow-300' 
+                  ? 'bg-blue-800 border-blue-800 text-white' 
                   : isActive 
-                    ? 'bg-blue-600 border-blue-600 text-yellow-300' 
-                    : 'bg-yellow-200 border-yellow-300 text-blue-800'
+                    ? 'bg-blue-600 border-blue-600 text-white' 
+                    : 'bg-blue-100 border-blue-300 text-blue-800'
               }`}>
                 {isCompleted ? <Check className="w-4 h-4" /> : index + 1}
               </div>
               {index < steps.length - 1 && (
                 <div className={`flex-1 h-0.5 mx-2 ${
-                  isCompleted ? 'bg-blue-800' : 'bg-yellow-300'
+                  isCompleted ? 'bg-blue-800' : 'bg-blue-300'
                 }`} />
               )}
             </div>
@@ -267,7 +267,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-blue-500"
+            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-gray-500"
             placeholder="Enter your full name"
             required
           />
@@ -288,7 +288,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-blue-500"
+            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-gray-500"
             placeholder="Enter your email"
             required
           />
@@ -305,7 +305,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-blue-500"
+            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-gray-500"
             placeholder="Enter your phone number"
             required
           />
@@ -325,7 +325,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none notebook-text"
+            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none notebook-text"
             required
           >
             <option value="">Select a main category</option>
@@ -356,7 +356,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
           <select
             value={selectedSubcategory}
             onChange={(e) => setSelectedSubcategory(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none notebook-text"
+            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none notebook-text"
             required
             disabled={!selectedCategory || isLoadingSubcategories}
           >
@@ -396,7 +396,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full pl-10 pr-12 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-blue-500"
+            className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-gray-500"
             placeholder="Create a password"
             required
           />
@@ -420,7 +420,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
             type={showConfirmPassword ? 'text' : 'password'}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full pl-10 pr-12 py-3 bg-yellow-50 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-blue-500"
+            className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 notebook-text placeholder-gray-500"
             placeholder="Confirm your password"
             required
           />
@@ -456,11 +456,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
       <ToastContainer />
       <div className="notebook-card backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header */}
-        <div className="bg-blue-800 p-6 sm:p-8 text-center relative overflow-hidden">
+        <div className="bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800 p-6 sm:p-8 text-center relative overflow-hidden">
           {/* Background decorative elements */}
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-60"></div>
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-yellow-400/10 rounded-full blur-3xl"></div>
-          <div className="absolute top-8 right-8 w-16 h-16 bg-yellow-400/5 rounded-full blur-2xl"></div>
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white to-transparent opacity-60"></div>
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-8 right-8 w-16 h-16 bg-white/5 rounded-full blur-2xl"></div>
           
           {/* Logo Section */}
           <div className="relative z-10 pt-4 sm:pt-6 mb-4 sm:mb-6">
@@ -481,13 +481,13 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
           
           {/* Text Section */}
           <div className="relative z-10">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-yellow-300 mb-2 sm:mb-3 drop-shadow-lg">Vidyavani</h1>
-            <p className="text-yellow-200 text-sm sm:text-base drop-shadow-md">Join our learning adventure! 🌍</p>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 sm:mb-3 drop-shadow-lg">Vidyavani</h1>
+            <p className="text-blue-100 text-sm sm:text-base drop-shadow-md">Join our learning adventure! 🌍</p>
           </div>
         </div>
 
         {/* Form */}
-        <div className="p-6 bg-yellow-100">
+        <div className="p-6 bg-white">
           {renderStepIndicator()}
           
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -513,7 +513,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
                 <button
                   type="button"
                   onClick={prevStep}
-                  className="flex-1 flex items-center justify-center gap-2 bg-yellow-200 text-blue-800 py-3 rounded-lg font-medium hover:bg-yellow-300 transition-all duration-200"
+                  className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-blue-800 py-3 rounded-lg font-medium hover:bg-gray-200 transition-all duration-200"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Back
@@ -525,11 +525,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
                 <button
                   type="submit"
                   disabled={isLoading || !!success}
-                  className="flex-1 bg-blue-800 text-yellow-300 py-3 rounded-lg font-semibold hover:bg-blue-900 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-blue-800 text-white py-3 rounded-lg font-semibold hover:bg-blue-900 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-yellow-300 mr-2"></div>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                       Creating Account...
                     </div>
                   ) : success ? (
@@ -543,7 +543,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, onSwitchToLogi
                   type="button"
                   onClick={handleNext}
                   disabled={!canProceedToNext()}
-                  className="flex-1 flex items-center justify-center gap-2 bg-blue-800 text-yellow-300 py-3 rounded-lg font-semibold hover:bg-blue-900 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center gap-2 bg-blue-800 text-white py-3 rounded-lg font-semibold hover:bg-blue-900 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                   <ArrowRight className="w-4 h-4" />

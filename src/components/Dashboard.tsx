@@ -127,14 +127,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
   return (
     <div className="min-h-screen bg-transparent">
       {/* Header */}
-      <header className="bg-yellow-100/95 backdrop-blur-xl shadow-2xl border-b border-blue-300">
+      <header className="bg-white/95 backdrop-blur-xl shadow-2xl border-b border-blue-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo and Sidebar Toggle */}
             <div className="flex items-center">
               <button
                 onClick={toggleSidebar}
-                className="hidden lg:block p-2 text-blue-800 hover:text-blue-900 mr-4 transition-all duration-200 hover:bg-yellow-200 rounded-lg"
+                className="hidden lg:block p-2 text-blue-800 hover:text-blue-900 mr-4 transition-all duration-200 hover:bg-gray-100 rounded-lg"
               >
                 <Menu className="h-6 w-6" />
               </button>
@@ -147,7 +147,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
                       className="w-full h-full object-cover rounded-lg"
                     />
                   </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-300 rounded-full animate-pulse"></div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-400 rounded-full animate-pulse"></div>
                 </div>
                 <div className="flex flex-col">
                   <h1 className="text-3xl font-bold text-blue-800">
@@ -160,7 +160,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-6">
-              <button className="relative p-3 text-blue-800 hover:text-blue-900 transition-all duration-200 hover:bg-yellow-200 rounded-xl group">
+              <button className="relative p-3 text-blue-800 hover:text-blue-900 transition-all duration-200 hover:bg-gray-100 rounded-xl group">
                 <Bell className="h-6 w-6" />
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                 <div className="absolute inset-0 bg-blue-800/0 group-hover:bg-blue-800/10 rounded-xl transition-all duration-200"></div>
@@ -185,7 +185,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
                   <div className="h-10 w-10 bg-blue-800 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
                     <User className="h-5 w-5 text-yellow-300" />
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-300 rounded-full border-2 border-white"></div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-400 rounded-full border-2 border-white"></div>
                 </div>
               </div>
             </div>
@@ -200,7 +200,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
       <div className="flex">
         {/* Desktop Sidebar */}
         <aside className={`hidden lg:block lg:flex-shrink-0 ${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300`}>
-          <div className="flex flex-col h-full bg-yellow-100/90 backdrop-blur-md border-r border-blue-300 shadow-lg">
+          <div className="flex flex-col h-full bg-white/90 backdrop-blur-md border-r border-blue-300 shadow-lg">
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
               <nav className="mt-5 flex-1 px-2 space-y-1">
                 {navigationItems.map((item) => {
@@ -211,8 +211,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
                       onClick={() => setActiveTab(item.id as ActiveTab)}
                       className={`group flex items-center px-2 py-3 text-sm font-medium rounded-md w-full text-left transition-colors duration-200 ${
                         activeTab === item.id
-                          ? 'bg-yellow-200 text-blue-800'
-                          : 'text-blue-700 hover:bg-yellow-200 hover:text-blue-800'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'text-blue-700 hover:bg-blue-50 hover:text-blue-800'
                       }`}
                     >
                       <Icon className={`mr-3 h-5 w-5 ${item.color}`} />
@@ -265,14 +265,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
                 >
                   {/* Active background */}
                   {isActive && (
-                    <div className="absolute inset-0 rounded-xl bg-yellow-400/20"></div>
+                    <div className="absolute inset-0 rounded-xl bg-blue-400/20"></div>
                   )}
                   
                   {/* Icon container */}
                   <div className={`relative z-10 flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 mb-1 ${
                     isActive 
-                      ? 'bg-yellow-400/20' 
-                      : 'group-hover:bg-yellow-400/10'
+                      ? 'bg-blue-400/20' 
+                      : 'group-hover:bg-blue-400/10'
                   }`}>
                     <Icon className={`w-5 h-5 transition-all duration-200 ${
                       isActive 
@@ -292,7 +292,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
                   
                   {/* Active indicator */}
                   {isActive && (
-                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-yellow-400 rounded-full"></div>
+                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-400 rounded-full"></div>
                   )}
                 </button>
               );
@@ -321,7 +321,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-yellow-100 rounded-2xl shadow-2xl max-w-md w-full p-6">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
             <div className="text-center space-y-4">
               {/* Icon */}
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
@@ -338,7 +338,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
               <div className="flex space-x-3 pt-4">
                 <button
                   onClick={cancelLogout}
-                  className="flex-1 px-4 py-3 bg-yellow-200 text-blue-800 rounded-xl hover:bg-yellow-300 transition-colors duration-200 font-medium"
+                  className="flex-1 px-4 py-3 bg-gray-100 text-blue-800 rounded-xl hover:bg-gray-200 transition-colors duration-200 font-medium"
                 >
                   Cancel
                 </button>
