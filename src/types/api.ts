@@ -178,9 +178,10 @@ export interface QuizGenerationRequest {
 
 export interface QuizQuestion {
   id: string;
+  type: 'multiple_choice' | 'short_answer' | 'long_answer';
   question: string;
-  options: string[];
-  correctAnswer: number;
+  options?: string[]; // Only for multiple choice questions
+  correctAnswer: number | string; // Index for multiple choice, string for others
   explanation?: string;
 }
 
@@ -229,4 +230,20 @@ export interface UserQuizHistory {
   totalQuizzes: number;
   averageScore: number;
   totalStudyTime: number; // in minutes
+}
+
+// Enhanced Notes Response Interface
+export interface EnhancedNotesResponse {
+  notes: string;
+  summary: string;
+  keyPoints: string[];
+  definitions: {
+    term: string;
+    definition: string;
+  }[];
+  qaNotes: {
+    question: string;
+    answer: string;
+    category: string;
+  }[];
 }

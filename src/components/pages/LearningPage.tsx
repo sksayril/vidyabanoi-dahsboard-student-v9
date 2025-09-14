@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Play, Clock, CheckCircle, Award, TrendingUp, Calendar, GraduationCap, Star, Sparkles, Heart, Rocket } from 'lucide-react';
+import { BookOpen, GraduationCap, Star, Sparkles, Heart, Rocket, Brain } from 'lucide-react';
 import { getSubcategories } from '../../api';
 import { SubcategoriesResponse } from '../../types/api';
 import { ContentDetailPage } from './ContentDetailPage';
+import { AIQuizGenerator } from '../AIQuizGenerator';
 
 interface LearningPageProps {
   userData?: any;
@@ -15,6 +16,8 @@ export const LearningPage: React.FC<LearningPageProps> = ({ userData, onNavigate
   const [error, setError] = useState('');
   const [selectedSubcategory, setSelectedSubcategory] = useState<{ id: string; name: string } | null>(null);
   const [continueLearningItem, setContinueLearningItem] = useState<any>(null);
+  const [showAIQuizGenerator, setShowAIQuizGenerator] = useState(false);
+  const [selectedSubcategoryForAI, setSelectedSubcategoryForAI] = useState<{ id: string; name: string } | null>(null);
 
   // Check for continue learning item on component mount
   useEffect(() => {
@@ -75,23 +78,6 @@ export const LearningPage: React.FC<LearningPageProps> = ({ userData, onNavigate
     return path[path.length - 1] || 'Unknown Class';
   };
 
-  // Handle continue learning from dashboard
-  const handleContinueLearning = (item: any) => {
-    // Navigate to the specific content
-    if (item.subcategoryId && item.contentId) {
-      // Find the content in the current data
-      const foundContent = subcategories.find(category => 
-        category.subcategories?.some(sub => sub._id === item.contentId)
-      );
-      
-      if (foundContent) {
-        const subcategory = foundContent.subcategories?.find(sub => sub._id === item.contentId);
-        if (subcategory) {
-          handleStartLearning(subcategory._id, subcategory.name);
-        }
-      }
-    }
-  };
 
   // Handle start learning button click
   const handleStartLearningClick = () => {
@@ -112,6 +98,18 @@ export const LearningPage: React.FC<LearningPageProps> = ({ userData, onNavigate
     setSelectedSubcategory(null);
   };
 
+  // Handle AI quiz generation
+  const handleGenerateAIQuiz = (subcategoryId: string, subcategoryName: string) => {
+    setSelectedSubcategoryForAI({ id: subcategoryId, name: subcategoryName });
+    setShowAIQuizGenerator(true);
+  };
+
+  // Handle close AI quiz generator
+  const handleCloseAIQuizGenerator = () => {
+    setShowAIQuizGenerator(false);
+    setSelectedSubcategoryForAI(null);
+  };
+
   // If a subcategory is selected, show the content detail page
   if (selectedSubcategory) {
     return (
@@ -125,15 +123,6 @@ export const LearningPage: React.FC<LearningPageProps> = ({ userData, onNavigate
     );
   }
 
-  // Color themes for different cards - single colors for children-friendly design
-  const colorThemes = [
-    // { bg: 'bg-pink-300', border: 'border-pink-400', icon: 'bg-pink-600', text: 'text-pink-800', button: 'bg-pink-600 hover:bg-pink-700' },
-    { bg: 'bg-blue-300', border: 'border-blue-400', icon: 'bg-blue-600', text: 'text-blue-800', button: 'bg-blue-600 hover:bg-blue-700' },
-    // { bg: 'bg-green-300', border: 'border-green-400', icon: 'bg-green-600', text: 'text-green-800', button: 'bg-green-600 hover:bg-green-700' },
-    // { bg: 'bg-yellow-300', border: 'border-yellow-400', icon: 'bg-yellow-600', text: 'text-yellow-800', button: 'bg-yellow-600 hover:bg-yellow-700' },
-    // { bg: 'bg-purple-300', border: 'border-purple-400', icon: 'bg-purple-600', text: 'text-purple-800', button: 'bg-purple-600 hover:bg-purple-700' },
-    // { bg: 'bg-orange-300', border: 'border-orange-400', icon: 'bg-orange-600', text: 'text-orange-800', button: 'bg-orange-600 hover:bg-orange-700' },
-  ];
 
   // Icons for different subjects
   const subjectIcons = [GraduationCap, BookOpen, Star, Rocket, Heart, Sparkles];
@@ -195,15 +184,13 @@ export const LearningPage: React.FC<LearningPageProps> = ({ userData, onNavigate
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {subcategories.map((categoryData, categoryIndex) =>
               categoryData.subcategories.map((subcategory, subcategoryIndex) => {
-                const themeIndex = (categoryIndex + subcategoryIndex) % colorThemes.length;
-                const theme = colorThemes[themeIndex];
+                const themeIndex = (categoryIndex + subcategoryIndex) % 6;
                 const IconComponent = subjectIcons[themeIndex % subjectIcons.length];
                 
                 return (
                   <div
                     key={subcategory._id}
-                    className={`notebook-card p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer group bg-white`}
-                    onClick={() => handleStartLearning(subcategory._id, subcategory.name)}
+                    className={`notebook-card p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group bg-white`}
                   >
                     {/* Decorative elements - geography themed */}
                     <div className="absolute top-3 right-3 opacity-60">
@@ -239,12 +226,23 @@ export const LearningPage: React.FC<LearningPageProps> = ({ userData, onNavigate
                       </span>
                     </div>
                     
-                    <button 
-                      className={`w-full bg-blue-800 text-yellow-300 py-4 rounded-2xl hover:shadow-xl transition-all duration-200 flex items-center justify-center text-base font-bold group-hover:scale-105 border-2 border-white shadow-lg`}
-                    >
-                      <Rocket className="h-5 w-5 mr-3 animate-bounce" />
-                      Start Learning Adventure! 🌍
-                    </button>
+                    <div className="space-y-3">
+                      <button 
+                        className={`w-full bg-blue-800 text-yellow-300 py-4 rounded-2xl hover:shadow-xl transition-all duration-200 flex items-center justify-center text-base font-bold group-hover:scale-105 border-2 border-white shadow-lg`}
+                        onClick={() => handleStartLearning(subcategory._id, subcategory.name)}
+                      >
+                        <Rocket className="h-5 w-5 mr-3 animate-bounce" />
+                        Start Learning Adventure! 🌍
+                      </button>
+                      
+                      <button 
+                        className={`w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl hover:shadow-lg transition-all duration-200 flex items-center justify-center text-sm font-bold group-hover:scale-105 border-2 border-white shadow-md`}
+                        onClick={() => handleGenerateAIQuiz(subcategory._id, subcategory.name)}
+                      >
+                        <Brain className="h-4 w-4 mr-2" />
+                        Generate AI Quiz & Notes
+                      </button>
+                    </div>
                   </div>
                 );
               })
@@ -266,6 +264,15 @@ export const LearningPage: React.FC<LearningPageProps> = ({ userData, onNavigate
         </div>
       )}
       </div>
+
+      {/* AI Quiz Generator Modal */}
+      {showAIQuizGenerator && selectedSubcategoryForAI && (
+        <AIQuizGenerator
+          subcategoryName={selectedSubcategoryForAI.name}
+          subcategoryId={selectedSubcategoryForAI.id}
+          onClose={handleCloseAIQuizGenerator}
+        />
+      )}
     </div>
   );
 }; 

@@ -58,36 +58,72 @@ export interface VerifyPaymentResponse {
   };
 }
 
-// AI Quiz Service for external API
-export class AIQuizService {
+// AI Service for external API
+export class AIService {
   private static AI_API_URL = 'https://api.a0.dev/ai/llm';
 
   static async generateQuiz(request: QuizGenerationRequest): Promise<QuizGenerationResponse> {
-    const prompt = `Generate a ${request.difficulty.toLowerCase()} quiz with ${request.questionCount} multiple choice questions about ${request.topic} in ${request.subject}. 
+    const prompt = `Generate a comprehensive ${request.difficulty.toLowerCase()} quiz with ${request.questionCount} questions about "${request.topic}" in ${request.subject}. 
+    
+    Question Distribution:
+    - ${Math.floor(request.questionCount * 0.5)} Multiple Choice Questions (50%)
+    - ${Math.floor(request.questionCount * 0.25)} Short Answer Questions (25%) 
+    - ${Math.floor(request.questionCount * 0.25)} Long Answer Questions (25%)
+    
     Format the response as a JSON object with the following structure:
     {
       "quiz": {
-        "id": "unique-id",
-        "title": "Quiz Title",
+        "id": "quiz-${Date.now()}",
+        "title": "Comprehensive Quiz: ${request.topic}",
         "topic": "${request.topic}",
         "subject": "${request.subject}",
         "difficulty": "${request.difficulty}",
         "questions": [
           {
             "id": "q1",
-            "question": "Question text here?",
-            "options": ["Option A", "Option B", "Option C", "Option D"],
+            "type": "multiple_choice",
+            "question": "What is the main concept of ${request.topic}?",
+            "options": ["Option A - detailed option", "Option B - detailed option", "Option C - detailed option", "Option D - detailed option"],
             "correctAnswer": 0,
-            "explanation": "Explanation for the correct answer"
+            "explanation": "Detailed explanation for why this answer is correct, including additional context and learning points."
+          },
+          {
+            "id": "q2",
+            "type": "short_answer",
+            "question": "Define the key term related to ${request.topic}.",
+            "correctAnswer": "Expected concise answer with key points",
+            "explanation": "Explanation of the answer and why it's important to understand this concept."
+          },
+          {
+            "id": "q3",
+            "type": "long_answer",
+            "question": "Explain in detail how ${request.topic} works and provide examples.",
+            "correctAnswer": "Comprehensive answer covering all aspects with examples and applications",
+            "explanation": "Detailed explanation covering all the important points that should be included in a complete answer."
           }
         ],
         "totalQuestions": ${request.questionCount},
-        "estimatedDuration": "${Math.ceil(request.questionCount * 1.5)} min"
+        "estimatedDuration": "${Math.ceil(request.questionCount * 2)} min"
       }
     }
     
-    Make sure the questions are educational, age-appropriate, and cover different aspects of ${request.topic}. 
-    The correctAnswer should be the index (0-3) of the correct option.`;
+    Requirements:
+    1. Create questions that test different levels of understanding (knowledge, comprehension, application, analysis, synthesis, evaluation)
+    2. Include questions about definitions, concepts, examples, applications, processes, comparisons, and real-world connections
+    3. Make questions progressive in difficulty within the ${request.difficulty} level
+    4. Ensure all questions are educational, age-appropriate, and relevant to ${request.topic}
+    5. Provide detailed explanations that help students learn, not just verify answers
+    6. Include practical examples and real-world applications where relevant
+    7. Make multiple choice options plausible but clearly distinguishable
+    8. For short answers, expect concise but complete responses
+    9. For long answers, expect comprehensive responses with examples and explanations
+    10. Cover all important aspects of ${request.topic} comprehensively
+    11. Include questions about cause-and-effect relationships
+    12. Add questions about historical context and significance
+    13. Include questions about current relevance and modern applications
+    14. Ensure questions cover both theoretical and practical aspects
+    
+    Focus on creating questions that promote deep understanding and critical thinking about ${request.topic}. Generate comprehensive coverage of all important subtopics.`;
 
     const response = await fetch(this.AI_API_URL, {
       method: 'POST',
@@ -123,6 +159,100 @@ export class AIQuizService {
     } catch (error) {
       console.error('Original AI response:', data.completion);
       throw new Error('Failed to parse AI quiz response');
+    }
+  }
+
+  static async generateNotes(content: string, topic: string, subject: string): Promise<{ notes: string; summary: string; keyPoints: string[]; definitions: { term: string; definition: string }[]; qaNotes: { question: string; answer: string; category: string }[] }> {
+    const prompt = `Generate comprehensive study notes, summary, key points, definitions, and question-answer pairs for the following content about "${topic}" in ${subject}:
+
+    Content: ${content}
+
+    Format the response as a JSON object with the following structure:
+    {
+      "notes": "Comprehensive study notes covering all important points, concepts, definitions, and examples from the content. Organize it in a clear, structured format with headings, bullet points, and sub-sections. Make it detailed and educational.",
+      "summary": "A concise summary of the key points and main concepts covered in the content. Should be 2-3 sentences maximum.",
+      "keyPoints": [
+        "Key point 1 - important concept or fact",
+        "Key point 2 - another important concept",
+        "Key point 3 - additional important information"
+      ],
+      "definitions": [
+        {
+          "term": "Important term 1",
+          "definition": "Clear and comprehensive definition of the term"
+        },
+        {
+          "term": "Important term 2", 
+          "definition": "Clear and comprehensive definition of the term"
+        }
+      ],
+      "qaNotes": [
+        {
+          "question": "What is the main concept discussed in this topic?",
+          "answer": "Detailed answer explaining the main concept with examples",
+          "category": "Basic Concepts"
+        },
+        {
+          "question": "How does this concept apply in real life?",
+          "answer": "Practical examples and applications",
+          "category": "Applications"
+        },
+        {
+          "question": "What are the key characteristics of this topic?",
+          "answer": "List and explain the key characteristics",
+          "category": "Characteristics"
+        }
+      ]
+    }
+
+    Requirements:
+    1. Generate 8-12 key points that are most important for understanding the topic
+    2. Create 5-8 important definitions with clear explanations
+    3. Generate 8-12 question-answer pairs covering different aspects (basic concepts, applications, characteristics, examples, processes, comparisons, importance, etc.)
+    4. Make all content educational, age-appropriate, and suitable for students
+    5. Ensure the notes are well-structured with proper headings and formatting
+    6. Include practical examples and real-world applications where relevant
+    7. Make the content engaging and easy to understand
+    8. Cover all important subtopics and concepts comprehensively
+    9. Include both theoretical and practical aspects
+    10. Provide detailed explanations that help students understand deeply
+
+    Focus on making the study material comprehensive, well-organized, and helpful for learning and revision. Generate more content to ensure thorough coverage of the topic.`;
+
+    const response = await fetch(this.AI_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: prompt }]
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`AI API request failed: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    // Parse the AI response and extract the notes data
+    try {
+      // Remove markdown code blocks and extract JSON content using regex
+      const jsonMatch = data.completion.match(/```json\s*([\s\S]*?)\s*```/);
+      let jsonString = jsonMatch ? jsonMatch[1] : data.completion;
+      
+      // If no markdown blocks found, try to extract JSON directly
+      if (!jsonMatch) {
+        // Look for JSON object starting with { and ending with }
+        const directJsonMatch = data.completion.match(/\{[\s\S]*\}/);
+        jsonString = directJsonMatch ? directJsonMatch[0] : data.completion;
+      }
+      
+      const notesData = JSON.parse(jsonString);
+      return notesData;
+    } catch (error) {
+      console.error('Original AI response:', data.completion);
+      throw new Error('Failed to parse AI notes response');
     }
   }
 }
@@ -392,5 +522,6 @@ export const getChat = (chatId: string) => ApiService.getChat(chatId);
 export const generateQuiz = (request: QuizGenerationRequest) => ApiService.generateQuiz(request);
 export const submitQuiz = (request: QuizSubmissionRequest) => ApiService.submitQuiz(request);
 export const getUserQuizHistory = () => ApiService.getUserQuizHistory();
-export const generateAIQuiz = (request: QuizGenerationRequest) => AIQuizService.generateQuiz(request);
+export const generateAIQuiz = (request: QuizGenerationRequest) => AIService.generateQuiz(request);
+export const generateAINotes = (content: string, topic: string, subject: string) => AIService.generateNotes(content, topic, subject);
 export const getUserProfile = () => ApiService.getUserProfile(); 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Play, Download, FileText, Image, Video, BookOpen, ChevronRight, X, Maximize2, Minimize2, Eye, Star, Rocket, Heart, Sparkles, GraduationCap, Award, Crown, Lock, Gift, Check, Highlighter } from 'lucide-react';
-import { getSubcategories } from '../../api';
-import { SubcategoriesResponse, User } from '../../types/api';
+import { ArrowLeft, Play, Download, FileText, Image, Video, BookOpen, ChevronRight, X, Maximize2, Minimize2, Eye, Star, Rocket, Heart, Sparkles, GraduationCap, Award, Crown, Lock, Gift, Check, Highlighter, Brain, Loader2, AlertCircle } from 'lucide-react';
+import { getSubcategories, generateAINotes } from '../../api';
+import { SubcategoriesResponse, User, EnhancedNotesResponse } from '../../types/api';
+import { JSONViewer } from '../JSONViewer';
 
 interface ContentDetailPageProps {
   subcategoryId: string;
@@ -41,6 +42,9 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
   const [highlights, setHighlights] = useState<{[key: string]: Array<{start: number, end: number, color: string, text: string}>}>({});
   const [isHighlighting, setIsHighlighting] = useState(false);
   const [highlightColor, setHighlightColor] = useState('#fef3c7'); // Default yellow
+  const [isGeneratingNotes, setIsGeneratingNotes] = useState(false);
+  const [generatedNotes, setGeneratedNotes] = useState<EnhancedNotesResponse | null>(null);
+  const [notesError, setNotesError] = useState('');
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -79,6 +83,54 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
     } finally {
       setDeepLoading(false);
     }
+  };
+
+  // Generate AI notes from content
+  const handleGenerateAINotes = async () => {
+    if (!focusedItem?.content?.text) {
+      setNotesError('No text content available to generate notes from.');
+      return;
+    }
+
+    setIsGeneratingNotes(true);
+    setNotesError('');
+    setGeneratedNotes(null);
+
+    try {
+      const response = await generateAINotes(
+        focusedItem.content.text, 
+        focusedItem.name, 
+        'NCERT Geography'
+      );
+      setGeneratedNotes(response);
+    } catch (err) {
+      console.error('Error generating notes:', err);
+      setNotesError('Failed to generate notes. Please try again.');
+    } finally {
+      setIsGeneratingNotes(false);
+    }
+  };
+
+  // Download generated notes
+  const downloadNotes = () => {
+    if (!generatedNotes || !focusedItem) return;
+
+    const notesData = {
+      topic: focusedItem.name,
+      subject: 'NCERT Geography',
+      generatedAt: new Date().toISOString(),
+      ...generatedNotes
+    };
+
+    const blob = new Blob([JSON.stringify(notesData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${focusedItem.name.replace(/\s+/g, '_')}_ai_notes.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   // Track learning activity in localStorage
@@ -560,14 +612,16 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
   };
 
   // Apply highlights to text
-  const applyHighlights = (text: string, sectionIndex: number, qaIndex: number, type: 'question' | 'answer') => {
+  const applyHighlights = (text: string | object, sectionIndex: number, qaIndex: number, type: 'question' | 'answer') => {
+    // Ensure text is a string
+    const textContent = typeof text === 'string' ? text : String(text || '');
     const highlightKey = `${sectionIndex}_${qaIndex}_${type}`;
     const contentHighlights = highlights[highlightKey] || [];
     
     console.log(`Applying highlights for ${highlightKey}:`, contentHighlights);
-    console.log(`Text to highlight: "${text}"`);
+    console.log(`Text to highlight: "${textContent}"`);
     
-    if (contentHighlights.length === 0) return text;
+    if (contentHighlights.length === 0) return textContent;
 
     // Sort highlights by start position
     const sortedHighlights = [...contentHighlights].sort((a, b) => a.start - b.start);
@@ -577,17 +631,17 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
 
     sortedHighlights.forEach((highlight, highlightIndex) => {
       // Validate highlight positions
-      if (highlight.start < 0 || highlight.end > text.length || highlight.start >= highlight.end) {
-        console.warn('Invalid highlight positions:', highlight, 'for text length:', text.length);
+      if (highlight.start < 0 || highlight.end > textContent.length || highlight.start >= highlight.end) {
+        console.warn('Invalid highlight positions:', highlight, 'for text length:', textContent.length);
         return;
       }
 
       // Add text before highlight
-      result += text.slice(lastIndex, highlight.start);
+      result += textContent.slice(lastIndex, highlight.start);
       
       // Add highlighted text
       result += `<span class="highlighted-text" style="background-color: ${highlight.color}; padding: 1px 2px; border-radius: 3px; position: relative;" data-highlight-index="${highlightIndex}" data-highlight-type="${type}">`;
-      result += text.slice(highlight.start, highlight.end);
+      result += textContent.slice(highlight.start, highlight.end);
       result += `<button class="remove-highlight-btn" onclick="removeHighlightFromText(${sectionIndex}, ${qaIndex}, '${type}', ${highlightIndex})" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; cursor: pointer; display: none;">×</button>`;
       result += '</span>';
       
@@ -595,17 +649,19 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
     });
 
     // Add remaining text
-    result += text.slice(lastIndex);
+    result += textContent.slice(lastIndex);
     
     return result;
   };
 
   // Apply highlights to section content
-  const applySectionHighlights = (text: string, sectionIndex: number) => {
+  const applySectionHighlights = (text: string | object, sectionIndex: number) => {
+    // Ensure text is a string
+    const textContent = typeof text === 'string' ? text : String(text || '');
     const highlightKey = `${sectionIndex}_section_answer`;
     const contentHighlights = highlights[highlightKey] || [];
     
-    if (contentHighlights.length === 0) return text;
+    if (contentHighlights.length === 0) return textContent;
 
     // Sort highlights by start position
     const sortedHighlights = [...contentHighlights].sort((a, b) => a.start - b.start);
@@ -615,17 +671,17 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
 
     sortedHighlights.forEach((highlight, highlightIndex) => {
       // Validate highlight positions
-      if (highlight.start < 0 || highlight.end > text.length || highlight.start >= highlight.end) {
-        console.warn('Invalid highlight positions:', highlight, 'for text length:', text.length);
+      if (highlight.start < 0 || highlight.end > textContent.length || highlight.start >= highlight.end) {
+        console.warn('Invalid highlight positions:', highlight, 'for text length:', textContent.length);
         return;
       }
 
       // Add text before highlight
-      result += text.slice(lastIndex, highlight.start);
+      result += textContent.slice(lastIndex, highlight.start);
       
       // Add highlighted text
       result += `<span class="highlighted-text" style="background-color: ${highlight.color}; padding: 1px 2px; border-radius: 3px; position: relative;" data-highlight-index="${highlightIndex}" data-highlight-type="section-content">`;
-      result += text.slice(highlight.start, highlight.end);
+      result += textContent.slice(highlight.start, highlight.end);
       result += `<button class="remove-highlight-btn" onclick="removeHighlightFromText(${sectionIndex}, -1, 'answer', ${highlightIndex})" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; cursor: pointer; display: none;">×</button>`;
       result += '</span>';
       
@@ -633,7 +689,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
     });
 
     // Add remaining text
-    result += text.slice(lastIndex);
+    result += textContent.slice(lastIndex);
     
     return result;
   };
@@ -1392,7 +1448,29 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
   };
 
   // Format study notes with regex parsing for Q&A structure
-  const formatStudyNotes = (text: string) => {
+  const formatStudyNotes = (text: string | object) => {
+    // Handle case where text might be an object instead of string
+    let textContent = '';
+    if (typeof text === 'string') {
+      textContent = text;
+    } else if (typeof text === 'object' && text !== null) {
+      // If it's an object, try to extract text content
+      if (Array.isArray(text)) {
+        textContent = text.join('\n');
+      } else {
+        // Convert object to readable text format
+        textContent = Object.entries(text).map(([key, value]) => {
+          if (typeof value === 'string') {
+            return `${key}: ${value}`;
+          } else if (typeof value === 'object' && value !== null) {
+            return `${key}: ${JSON.stringify(value, null, 2)}`;
+          }
+          return `${key}: ${String(value)}`;
+        }).join('\n');
+      }
+    } else {
+      textContent = String(text || '');
+    }
     const sections: Array<{
       title?: string;
       subtitle?: string;
@@ -1401,7 +1479,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
     }> = [];
 
     // Split text into lines and process
-    const lines = text.split('\n').filter(line => line.trim());
+    const lines = textContent.split('\n').filter(line => line.trim());
     let currentSection: any = {};
     let currentQA: any = null;
     let isInQA = false;
@@ -1808,8 +1886,220 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
 
               {activeTab === 'text' && focusedItem.content.text && (
                 <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 lg:p-6">
-                  <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 lg:mb-6">Study Notes</h3>
+                  <div className="flex items-center justify-between mb-3 sm:mb-4 lg:mb-6">
+                    <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900">Study Notes</h3>
+                    <button
+                      onClick={handleGenerateAINotes}
+                      disabled={isGeneratingNotes}
+                      className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isGeneratingNotes ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Generating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Brain className="h-4 w-4" />
+                          <span>AI Notes</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                   
+                  {/* Error Display */}
+                  {notesError && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center">
+                      <AlertCircle className="h-5 w-5 text-red-500 mr-3" />
+                      <p className="text-red-600 text-sm">{notesError}</p>
+                    </div>
+                  )}
+
+                  {/* Generated AI Notes Display */}
+                  {generatedNotes && (
+                    <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-2">
+                          <Check className="h-5 w-5 text-purple-500" />
+                          <h4 className="font-bold text-purple-800">AI Generated Notes</h4>
+                        </div>
+                        <button
+                          onClick={downloadNotes}
+                          className="flex items-center space-x-2 bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                        >
+                          <Download className="h-4 w-4" />
+                          <span>Download</span>
+                        </button>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <h5 className="font-medium text-purple-700 mb-2">Summary:</h5>
+                          <p className="text-purple-600 bg-white p-3 rounded border text-sm">
+                            {generatedNotes.summary}
+                          </p>
+                        </div>
+                        
+                        {/* Key Points */}
+                        {generatedNotes.keyPoints && generatedNotes.keyPoints.length > 0 && (
+                          <div>
+                            <h5 className="font-medium text-purple-700 mb-2">Key Points:</h5>
+                            <div className="bg-white p-3 rounded border">
+                              <ul className="space-y-1 text-sm text-purple-600">
+                                {generatedNotes.keyPoints.map((point, index) => (
+                                  <li key={index} className="flex items-start">
+                                    <span className="text-purple-500 mr-2">•</span>
+                                    <span>{point}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Definitions */}
+                        {generatedNotes.definitions && generatedNotes.definitions.length > 0 && (
+                          <div>
+                            <h5 className="font-medium text-purple-700 mb-2">Important Definitions:</h5>
+                            <div className="bg-white p-3 rounded border max-h-40 overflow-y-auto">
+                              <div className="space-y-2 text-sm">
+                                {generatedNotes.definitions.map((def, index) => (
+                                  <div key={index} className="border-l-2 border-purple-200 pl-3">
+                                    <span className="font-medium text-purple-800">{def.term}:</span>
+                                    <span className="text-purple-600 ml-2">{def.definition}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Q&A Notes */}
+                        {generatedNotes.qaNotes && generatedNotes.qaNotes.length > 0 && (
+                          <div>
+                            <h5 className="font-medium text-purple-700 mb-2">Question & Answer Notes ({generatedNotes.qaNotes.length} total):</h5>
+                            <div className="bg-white p-3 rounded border max-h-80 overflow-y-auto">
+                              <div className="space-y-3 text-sm">
+                                {generatedNotes.qaNotes.slice(0, 8).map((qa, index) => (
+                                  <div key={index} className="border border-purple-100 rounded-lg p-3 hover:shadow-md transition-shadow">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="font-medium text-purple-800">Q{index + 1}:</span>
+                                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                                        {qa.category}
+                                      </span>
+                                    </div>
+                                    <p className="text-purple-700 mb-2 font-medium">{qa.question}</p>
+                                    <p className="text-purple-600 text-xs leading-relaxed">{qa.answer}</p>
+                                  </div>
+                                ))}
+                                {generatedNotes.qaNotes.length > 8 && (
+                                  <div className="text-center mt-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                                    <p className="text-sm text-purple-700 font-medium">
+                                      Showing 8 of {generatedNotes.qaNotes.length} Q&A pairs
+                                    </p>
+                                    <p className="text-xs text-purple-600 mt-1">
+                                      All {generatedNotes.qaNotes.length} pairs are available in the complete data structure below
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div>
+                          <h5 className="font-medium text-purple-700 mb-2">Detailed Notes:</h5>
+                          <div className="text-purple-600 bg-white p-3 rounded border text-sm max-h-60 overflow-y-auto">
+                            <pre className="whitespace-pre-wrap">{generatedNotes.notes}</pre>
+                          </div>
+                        </div>
+                        
+                        {/* Enhanced JSON Response Display */}
+                        <div>
+                          <h5 className="font-medium text-purple-700 mb-2">Complete AI Response Data:</h5>
+                          <div className="bg-white p-3 rounded border max-h-60 overflow-y-auto">
+                            <div className="space-y-3 text-sm">
+                              {/* Summary Section */}
+                              <div className="border-l-4 border-purple-300 pl-3">
+                                <h6 className="font-semibold text-purple-800 mb-1">📋 Summary</h6>
+                                <p className="text-purple-600 text-xs">{generatedNotes.summary}</p>
+                              </div>
+
+                              {/* Key Points Section */}
+                              {generatedNotes.keyPoints && generatedNotes.keyPoints.length > 0 && (
+                                <div className="border-l-4 border-blue-300 pl-3">
+                                  <h6 className="font-semibold text-blue-800 mb-1">🔑 Key Points ({generatedNotes.keyPoints.length})</h6>
+                                  <div className="space-y-1">
+                                    {generatedNotes.keyPoints.map((point, index) => (
+                                      <div key={index} className="text-blue-600 text-xs">
+                                        <span className="font-medium">{index + 1}.</span> {point}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Definitions Section */}
+                              {generatedNotes.definitions && generatedNotes.definitions.length > 0 && (
+                                <div className="border-l-4 border-green-300 pl-3">
+                                  <h6 className="font-semibold text-green-800 mb-1">📚 Definitions ({generatedNotes.definitions.length})</h6>
+                                  <div className="space-y-2">
+                                    {generatedNotes.definitions.map((def, index) => (
+                                      <div key={index} className="text-green-600 text-xs">
+                                        <span className="font-medium text-green-800">{def.term}:</span>
+                                        <span className="ml-1">{def.definition}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Q&A Section */}
+                              {generatedNotes.qaNotes && generatedNotes.qaNotes.length > 0 && (
+                                <div className="border-l-4 border-orange-300 pl-3">
+                                  <h6 className="font-semibold text-orange-800 mb-1">❓ Q&A Pairs ({generatedNotes.qaNotes.length})</h6>
+                                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                                    {generatedNotes.qaNotes.map((qa, index) => (
+                                      <div key={index} className="bg-orange-50 p-2 rounded border border-orange-200 hover:bg-orange-100 transition-colors">
+                                        <div className="flex items-center justify-between mb-1">
+                                          <span className="font-medium text-orange-800 text-xs">Q{index + 1}</span>
+                                          <span className="text-xs bg-orange-200 text-orange-700 px-2 py-0.5 rounded">
+                                            {qa.category}
+                                          </span>
+                                        </div>
+                                        <p className="text-orange-700 text-xs font-medium mb-1 leading-relaxed">{qa.question}</p>
+                                        <p className="text-orange-600 text-xs leading-relaxed">{qa.answer}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  {generatedNotes.qaNotes.length > 5 && (
+                                    <p className="text-xs text-orange-600 mt-2 text-center">
+                                      Scroll to see all {generatedNotes.qaNotes.length} Q&A pairs
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+
+                              
+                              {/* <details className="border-l-4 border-gray-300 pl-3">
+                                <summary className="font-semibold text-gray-800 mb-1 cursor-pointer hover:text-gray-600">
+                                  🔧 Raw JSON Data (Click to expand)
+                                </summary>
+                                <div className="mt-2">
+                                  <JSONViewer 
+                                    data={generatedNotes} 
+                                    title="Raw JSON Response" 
+                                    maxHeight="max-h-40"
+                                  />
+                                </div>
+                              </details> */}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Highlighting Instructions */}
                   {isHighlighting && (
                     <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -1832,7 +2122,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                     className="space-y-3 sm:space-y-4 lg:space-y-6"
                     onMouseUp={() => handleCrossElementSelection()}
                   >
-                    {formatStudyNotes(focusedItem.content.text).map((section, sectionIndex) => (
+                    {formatStudyNotes(focusedItem.content?.text || '').map((section, sectionIndex) => (
                       <div key={sectionIndex} className="space-y-3 sm:space-y-4">
                         {/* Section Title */}
                         {section.title && (
@@ -2067,7 +2357,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                                 </h4>
                                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
                                   <div className="space-y-3 sm:space-y-4">
-                                    {formatStudyNotes(item.content.text).map((section, sectionIndex) => (
+                                    {formatStudyNotes(item.content?.text || '').map((section, sectionIndex) => (
                                       <div key={sectionIndex} className="space-y-3">
                                         {/* Section Title */}
                                         {section.title && (
