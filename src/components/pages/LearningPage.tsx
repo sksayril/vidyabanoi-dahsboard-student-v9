@@ -235,13 +235,13 @@ export const LearningPage: React.FC<LearningPageProps> = ({ userData, onNavigate
                         Start Learning Adventure! 🌍
                       </button>
                       
-                      <button 
+                      {/* <button 
                         className={`w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl hover:shadow-lg transition-all duration-200 flex items-center justify-center text-sm font-bold group-hover:scale-105 border-2 border-white shadow-md`}
                         onClick={() => handleGenerateAIQuiz(subcategory._id, subcategory.name)}
                       >
                         <Brain className="h-4 w-4 mr-2" />
                         Generate AI Quiz & Notes
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 );

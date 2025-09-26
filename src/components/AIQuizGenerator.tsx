@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Brain, BookOpen, Star, Sparkles, Download, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { generateAIQuiz, generateAINotes } from '../api';
 import { QuizGenerationRequest, QuizGenerationResponse, EnhancedNotesResponse } from '../types/api';
@@ -24,6 +24,48 @@ export const AIQuizGenerator: React.FC<AIQuizGeneratorProps> = ({
   const [error, setError] = useState('');
   const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
   const [questionCount, setQuestionCount] = useState(40);
+
+  // Parse notes object into readable format
+  const parseNotesToReadableFormat = (notes: string | object): string => {
+    if (typeof notes === 'string') {
+      return notes;
+    }
+
+    if (typeof notes === 'object' && notes !== null) {
+      let formattedContent = '';
+      
+      const parseObject = (obj: any, level: number = 0): string => {
+        let result = '';
+        const indent = '  '.repeat(level);
+        
+        for (const [key, value] of Object.entries(obj)) {
+          if (typeof value === 'object' && value !== null) {
+            // Check if this looks like a chapter or section
+            if (key.toLowerCase().includes('chapter') || key.toLowerCase().includes('section')) {
+              result += `\n${indent}📚 ${key}\n`;
+              result += `${indent}${'─'.repeat(key.length + 3)}\n`;
+            } else {
+              result += `\n${indent}📖 ${key}\n`;
+            }
+            result += parseObject(value, level + 1);
+          } else if (typeof value === 'string') {
+            // Format key-value pairs nicely
+            const cleanKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            result += `${indent}• ${cleanKey}: ${value}\n`;
+          } else {
+            result += `${indent}• ${key}: ${String(value)}\n`;
+          }
+        }
+        
+        return result;
+      };
+      
+      formattedContent = parseObject(notes);
+      return formattedContent;
+    }
+    
+    return String(notes || '');
+  };
 
   const handleGenerateQuiz = async () => {
     setIsGeneratingQuiz(true);
@@ -100,7 +142,26 @@ export const AIQuizGenerator: React.FC<AIQuizGeneratorProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const downloadNotes = () => {
+  const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
+
+  // Close download dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showDownloadDropdown) {
+        const target = event.target as Element;
+        if (!target.closest('.download-dropdown')) {
+          setShowDownloadDropdown(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDownloadDropdown]);
+
+  const downloadNotes = async (format: 'json' | 'pdf' | 'docx' = 'json') => {
     if (!generatedNotes) return;
 
     const notesData = {
@@ -111,15 +172,388 @@ export const AIQuizGenerator: React.FC<AIQuizGeneratorProps> = ({
       ...generatedNotes
     };
 
-    const blob = new Blob([JSON.stringify(notesData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${subcategoryName.replace(/\s+/g, '_')}_notes.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const fileName = `${subcategoryName.replace(/\s+/g, '_')}_ai_notes`;
+
+    if (format === 'json') {
+      const blob = new Blob([JSON.stringify(notesData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${fileName}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else if (format === 'pdf') {
+      await downloadAsPDF(notesData, fileName);
+    } else if (format === 'docx') {
+      await downloadAsDOCX(notesData, fileName);
+    }
+  };
+
+  // Download as PDF with watermark and pagination
+  const downloadAsPDF = async (notesData: any, fileName: string) => {
+    try {
+      const { jsPDF } = await import('jspdf');
+      
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      const contentWidth = pageWidth - (margin * 2);
+      let yPosition = margin;
+      let currentPage = 1;
+      
+      // Helper function to add watermark to current page
+      const addWatermark = () => {
+        doc.setFontSize(60);
+        doc.setTextColor(200, 200, 200);
+        doc.text('V', pageWidth / 2, pageHeight / 2, { angle: 45 });
+        doc.setTextColor(0, 0, 0);
+      };
+      
+      // Helper function to check if we need a new page
+      const checkNewPage = (requiredSpace: number) => {
+        if (yPosition + requiredSpace > pageHeight - margin) {
+          doc.addPage();
+          currentPage++;
+          addWatermark();
+          yPosition = margin;
+          return true;
+        }
+        return false;
+      };
+      
+      // Helper function to add text with pagination
+      const addTextWithPagination = (text: string, fontSize: number, isBold: boolean = false) => {
+        doc.setFontSize(fontSize);
+        if (isBold) {
+          doc.setFont(undefined, 'bold');
+        } else {
+          doc.setFont(undefined, 'normal');
+        }
+        
+        const lines = doc.splitTextToSize(text, contentWidth);
+        const requiredSpace = lines.length * (fontSize * 0.4) + 5;
+        
+        if (checkNewPage(requiredSpace)) {
+          // Add page header
+          doc.setFontSize(10);
+          doc.setTextColor(100, 100, 100);
+          doc.text(`${notesData.topic} - Page ${currentPage}`, margin, 15);
+          doc.setTextColor(0, 0, 0);
+        }
+        
+        doc.text(lines, margin, yPosition);
+        yPosition += requiredSpace;
+      };
+      
+      // Add watermark to first page
+      addWatermark();
+      
+      // Add title
+      doc.setFontSize(20);
+      doc.setFont(undefined, 'bold');
+      doc.text(notesData.topic, margin, yPosition);
+      yPosition += 15;
+      
+      // Add metadata
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Subject: ${notesData.subject || 'N/A'}`, margin, yPosition);
+      yPosition += 8;
+      doc.text(`Generated: ${new Date(notesData.generatedAt || new Date()).toLocaleDateString()}`, margin, yPosition);
+      yPosition += 15;
+      
+      // Add summary
+      if (notesData.summary) {
+        addTextWithPagination('Summary:', 14, true);
+        addTextWithPagination(notesData.summary, 10);
+        yPosition += 10;
+      }
+      
+      // Add key points
+      if (notesData.keyPoints && notesData.keyPoints.length > 0) {
+        addTextWithPagination('Key Points:', 14, true);
+        yPosition += 5;
+        
+        notesData.keyPoints.forEach((point: string, index: number) => {
+          addTextWithPagination(`${index + 1}. ${point}`, 10);
+        });
+        yPosition += 10;
+      }
+      
+      // Add definitions
+      if (notesData.definitions && notesData.definitions.length > 0) {
+        addTextWithPagination('Important Definitions:', 14, true);
+        yPosition += 5;
+        
+        notesData.definitions.forEach((def: any) => {
+          addTextWithPagination(`${def.term}:`, 10, true);
+          addTextWithPagination(def.definition, 10);
+          yPosition += 5;
+        });
+        yPosition += 10;
+      }
+      
+      // Add Q&A Notes
+      if (notesData.qaNotes && notesData.qaNotes.length > 0) {
+        addTextWithPagination('Question & Answer Notes:', 14, true);
+        yPosition += 5;
+        
+        notesData.qaNotes.forEach((qa: any, index: number) => {
+          addTextWithPagination(`Q${index + 1}: ${qa.question}`, 10, true);
+          addTextWithPagination(`A: ${qa.answer}`, 10);
+          if (qa.category) {
+            doc.setFontSize(9);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Category: ${qa.category}`, margin, yPosition);
+            doc.setTextColor(0, 0, 0);
+            yPosition += 8;
+          }
+          yPosition += 10;
+        });
+        yPosition += 10;
+      }
+      
+      // Add detailed notes
+      if (notesData.notes) {
+        addTextWithPagination('Detailed Notes:', 14, true);
+        yPosition += 5;
+        
+        const notesText = typeof notesData.notes === 'string' 
+          ? notesData.notes 
+          : parseNotesToReadableFormat(notesData.notes);
+        
+        addTextWithPagination(notesText || '', 10);
+      }
+      
+      // Add footer to all pages
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Generated by Vudywarani - Page ${i} of ${totalPages}`, margin, pageHeight - 10);
+        doc.text(`Downloaded on: ${new Date().toLocaleDateString()}`, pageWidth - margin - 50, pageHeight - 10);
+      }
+      
+      // Save the PDF
+      doc.save(`${fileName}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      downloadNotes('json');
+    }
+  };
+
+  // Download as DOCX with watermark
+  const downloadAsDOCX = async (notesData: any, fileName: string) => {
+    try {
+      const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = await import('docx');
+      const { saveAs } = await import('file-saver');
+      
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: [
+            // Title
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: notesData.topic,
+                  bold: true,
+                  size: 32,
+                }),
+              ],
+              heading: HeadingLevel.TITLE,
+              alignment: AlignmentType.CENTER,
+            }),
+            
+            // Metadata
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `Subject: ${notesData.subject}`,
+                  size: 20,
+                }),
+              ],
+            }),
+            
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `Generated: ${new Date(notesData.generatedAt).toLocaleDateString()}`,
+                  size: 20,
+                }),
+              ],
+            }),
+            
+            // Summary
+            ...(notesData.summary ? [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "Summary",
+                    bold: true,
+                    size: 24,
+                  }),
+                ],
+                heading: HeadingLevel.HEADING_1,
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: notesData.summary,
+                    size: 20,
+                  }),
+                ],
+              }),
+            ] : []),
+            
+            // Key Points
+            ...(notesData.keyPoints && notesData.keyPoints.length > 0 ? [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "Key Points",
+                    bold: true,
+                    size: 24,
+                  }),
+                ],
+                heading: HeadingLevel.HEADING_1,
+              }),
+              ...notesData.keyPoints.map((point: string, index: number) => 
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `${index + 1}. ${point}`,
+                      size: 20,
+                    }),
+                  ],
+                })
+              ),
+            ] : []),
+            
+            // Definitions
+            ...(notesData.definitions && notesData.definitions.length > 0 ? [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "Important Definitions",
+                    bold: true,
+                    size: 24,
+                  }),
+                ],
+                heading: HeadingLevel.HEADING_1,
+              }),
+              ...notesData.definitions.flatMap((def: any) => [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `${def.term}:`,
+                      bold: true,
+                      size: 20,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: def.definition,
+                      size: 20,
+                    }),
+                  ],
+                }),
+              ]),
+            ] : []),
+            
+            // Q&A Notes
+            ...(notesData.qaNotes && notesData.qaNotes.length > 0 ? [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "Question & Answer Notes",
+                    bold: true,
+                    size: 24,
+                  }),
+                ],
+                heading: HeadingLevel.HEADING_1,
+              }),
+              ...notesData.qaNotes.flatMap((qa: any, index: number) => [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `Q${index + 1}: ${qa.question}`,
+                      bold: true,
+                      size: 20,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `A: ${qa.answer}`,
+                      size: 20,
+                    }),
+                  ],
+                }),
+                ...(qa.category ? [
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: `Category: ${qa.category}`,
+                        italics: true,
+                        size: 18,
+                        color: "666666",
+                      }),
+                    ],
+                  }),
+                ] : []),
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "",
+                      size: 20,
+                    }),
+                  ],
+                }),
+              ]),
+            ] : []),
+            
+            // Detailed Notes
+            ...(notesData.notes ? [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "Detailed Notes",
+                    bold: true,
+                    size: 24,
+                  }),
+                ],
+                heading: HeadingLevel.HEADING_1,
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: typeof notesData.notes === 'string' 
+                      ? notesData.notes 
+                      : parseNotesToReadableFormat(notesData.notes),
+                    size: 20,
+                  }),
+                ],
+              }),
+            ] : []),
+          ],
+        }],
+      });
+      
+      const buffer = await Packer.toBuffer(doc);
+      const blob = new Blob([buffer.buffer.slice(0)], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      saveAs(blob, `${fileName}.docx`);
+    } catch (error) {
+      console.error('Error generating DOCX:', error);
+      downloadNotes('json');
+    }
   };
 
   return (
@@ -428,13 +862,51 @@ export const AIQuizGenerator: React.FC<AIQuizGeneratorProps> = ({
                     <CheckCircle className="h-5 w-5 text-purple-500" />
                     <h4 className="font-bold text-purple-800">Notes Generated Successfully!</h4>
                   </div>
-                  <button
-                    onClick={downloadNotes}
-                    className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-                  >
-                    <Download className="h-4 w-4" />
-                    <span>Download</span>
-                  </button>
+                  <div className="relative download-dropdown">
+                    <button
+                      onClick={() => setShowDownloadDropdown(!showDownloadDropdown)}
+                      className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>Download</span>
+                    </button>
+                    {showDownloadDropdown && (
+                      <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                        <div className="py-1">
+                          <button
+                            onClick={() => {
+                              downloadNotes('json');
+                              setShowDownloadDropdown(false);
+                            }}
+                            className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <FileText className="h-4 w-4" />
+                            <span>Download as JSON</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              downloadNotes('pdf');
+                              setShowDownloadDropdown(false);
+                            }}
+                            className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <FileText className="h-4 w-4" />
+                            <span>Download as PDF</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              downloadNotes('docx');
+                              setShowDownloadDropdown(false);
+                            }}
+                            className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <FileText className="h-4 w-4" />
+                            <span>Download as DOCX</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                  <div className="space-y-4">
@@ -515,7 +987,9 @@ export const AIQuizGenerator: React.FC<AIQuizGeneratorProps> = ({
                    <div>
                      <h5 className="font-medium text-purple-700 mb-2">Study Notes Preview:</h5>
                      <div className="text-purple-600 bg-white p-3 rounded border text-sm max-h-40 overflow-y-auto">
-                       {generatedNotes.notes.substring(0, 500)}...
+                       <pre className="whitespace-pre-wrap font-mono leading-relaxed">
+                         {parseNotesToReadableFormat(generatedNotes.notes).substring(0, 500)}...
+                       </pre>
                      </div>
                    </div>
                    
@@ -533,7 +1007,7 @@ export const AIQuizGenerator: React.FC<AIQuizGeneratorProps> = ({
                              <div><span className="font-medium">Key Points:</span> {generatedNotes.keyPoints?.length || 0}</div>
                              <div><span className="font-medium">Definitions:</span> {generatedNotes.definitions?.length || 0}</div>
                              <div><span className="font-medium">Q&A Pairs:</span> {generatedNotes.qaNotes?.length || 0}</div>
-                             <div><span className="font-medium">Notes Length:</span> {generatedNotes.notes?.length || 0} chars</div>
+                             <div><span className="font-medium">Notes Length:</span> {typeof generatedNotes.notes === 'string' ? generatedNotes.notes.length : JSON.stringify(generatedNotes.notes).length} chars</div>
                            </div>
                          </div>
 

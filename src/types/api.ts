@@ -234,7 +234,7 @@ export interface UserQuizHistory {
 
 // Enhanced Notes Response Interface
 export interface EnhancedNotesResponse {
-  notes: string;
+  notes: string | object; // Allow both string and object to handle API inconsistencies
   summary: string;
   keyPoints: string[];
   definitions: {
