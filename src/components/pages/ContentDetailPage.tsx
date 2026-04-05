@@ -2754,38 +2754,44 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
         )}
 
         {!deepLoading && !deepError && deepContent.length > 0 && (
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             {deepContent.map((categoryData) =>
               categoryData.subcategories.map((item, index) => {
                 const { theme, IconComponent } = getContentTheme(index);
                 return (
                   <div
                     key={item._id}
-                    className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+                    className="flex flex-col rounded-2xl border border-gray-200/70 bg-white shadow-md hover:shadow-xl hover:border-[#c5cae9]/90 transition-all duration-300 overflow-hidden h-full"
                   >
-                    {/* Content Header */}
-                    <div className="p-6 border-b border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${theme.icon}`}>
-                            <IconComponent className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
-                            <p className="text-sm text-gray-600">
-                              {item.content?.text || 'No description available'}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
-                          {item.type}
-                        </span>
-                      </div>
+                    <div className={`relative h-24 sm:h-28 flex items-center justify-center shrink-0 ${theme.icon}`}>
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/15 to-transparent pointer-events-none" />
+                      <IconComponent className="relative h-10 w-10 sm:h-11 sm:w-11 text-white drop-shadow-md" strokeWidth={1.75} />
                     </div>
+
+                    <div className="flex flex-col flex-1 min-h-0 bg-white">
+                      <div className="px-3 sm:px-4 pt-3 pb-2 border-b border-gray-100/90">
+                        <h3 className="text-[14px] sm:text-base font-bold text-[#1A237E] text-center leading-snug line-clamp-3 break-words">
+                          {item.name}
+                        </h3>
+                        <div className="mt-2 flex justify-center">
+                          <span
+                            className="inline-block text-[10px] sm:text-[11px] font-semibold text-[#3949ab] px-3 py-1 rounded-full max-w-full truncate"
+                            style={{ backgroundColor: '#F0F0F8' }}
+                          >
+                            {item.type}
+                          </span>
+                        </div>
+                        {item.content?.text && (
+                          <p className="mt-2 text-[11px] sm:text-xs text-[#5c6b8a] text-center line-clamp-2 leading-relaxed">
+                            {String(item.content.text).slice(0, 120)}
+                            {String(item.content.text).length > 120 ? '…' : ''}
+                          </p>
+                        )}
+                      </div>
 
                     {/* Content Media */}
                     {item.content && hasMediaContent(item) && (
-                      <div className="p-6 space-y-4">
+                      <div className="p-4 sm:p-5 space-y-4">
                         {/* Check subscription for premium content */}
                         {requiresSubscription(item) && !hasActiveSubscription() ? (
                           <SubscriptionPrompt item={item} />
@@ -2899,7 +2905,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                               {hasStudyMaterials(item) && (
                                 <button 
                                   onClick={() => handleFocusItem(item)}
-                                  className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                  className="flex items-center space-x-2 bg-[#1a3a6e] text-white px-4 py-2.5 rounded-xl hover:bg-[#152a52] transition-colors shadow-sm font-medium"
                                 >
                                   <BookOpen className="h-4 w-4" />
                                   <span>Study Materials</span>
@@ -2923,7 +2929,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                         <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
                           <button 
                             onClick={() => handleStartLearning(item._id, item.name)}
-                            className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                            className="flex items-center space-x-2 w-full sm:w-auto justify-center bg-[#1a3a6e] text-white px-4 py-2.5 rounded-xl hover:bg-[#152a52] transition-colors shadow-sm font-medium"
                           >
                             <ChevronRight className="h-4 w-4" />
                             <span>Start Learning</span>
@@ -2933,11 +2939,12 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                     )}
 
                     {/* Footer */}
-                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>ID: {item._id.slice(-8)}</span>
+                    <div className="mt-auto px-4 py-2.5 bg-[#f4f6fa] border-t border-gray-100/90">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[11px] text-[#5c6b8a] font-medium">
+                        <span className="tabular-nums">ID: {item._id.slice(-8)}</span>
                         <span>Created: {new Date(item.createdAt).toLocaleDateString()}</span>
                       </div>
+                    </div>
                     </div>
                   </div>
                 );
@@ -2994,31 +3001,35 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
       )}
 
       {!loading && !error && content.length > 0 && (
-        <div className="space-y-4 sm:space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {content.map((categoryData) =>
             categoryData.subcategories.map((item, index) => {
               const { theme, IconComponent } = getContentTheme(index);
               return (
                 <div
                   key={item._id}
-                  className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+                  className="flex flex-col rounded-2xl border border-gray-200/70 bg-white shadow-md hover:shadow-xl hover:border-[#c5cae9]/90 transition-all duration-300 overflow-hidden h-full"
                 >
-                  {/* Content Header - Fixed mobile layout */}
-                  <div className="p-3 sm:p-4 lg:p-6 border-b border-gray-100">
-                    <div className="space-y-2 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
-                      <div className="flex items-start space-x-2 sm:space-x-3">
-                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center ${theme.icon} flex-shrink-0`}>
-                          <IconComponent className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 break-words leading-tight mobile-text-wrap">{item.name}</h3>
-                        </div>
-                      </div>
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full font-medium self-start sm:self-auto flex-shrink-0">
-                        {item.type}
-                      </span>
-                    </div>
+                  {/* Colored top — icon (matches subject-grid tiles) */}
+                  <div className={`relative h-24 sm:h-28 flex items-center justify-center shrink-0 ${theme.icon}`}>
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/15 to-transparent pointer-events-none" />
+                    <IconComponent className="relative h-10 w-10 sm:h-11 sm:w-11 text-white drop-shadow-md" strokeWidth={1.75} />
                   </div>
+
+                  <div className="flex flex-col flex-1 min-h-0 bg-white">
+                    <div className="px-3 sm:px-4 pt-3 pb-2 border-b border-gray-100/90">
+                      <h3 className="text-[14px] sm:text-base font-bold text-[#1A237E] text-center leading-snug line-clamp-3 break-words">
+                        {item.name}
+                      </h3>
+                      <div className="mt-2 flex justify-center">
+                        <span
+                          className="inline-block text-[10px] sm:text-[11px] font-semibold text-[#3949ab] px-3 py-1 rounded-full max-w-full truncate"
+                          style={{ backgroundColor: '#F0F0F8' }}
+                        >
+                          {item.type}
+                        </span>
+                      </div>
+                    </div>
 
                   {/* Content Media */}
                   {item.content && hasMediaContent(item) && (
@@ -3064,7 +3075,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                             {hasStudyMaterials(item) && (
                               <button 
                                 onClick={() => handleFocusItem(item)}
-                                className="flex items-center space-x-1.5 sm:space-x-2 bg-green-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-green-700 transition-colors text-xs sm:text-sm flex-shrink-0"
+                                className="flex items-center space-x-1.5 sm:space-x-2 w-full sm:w-auto justify-center bg-[#1a3a6e] text-white px-3 sm:px-4 py-2 rounded-xl hover:bg-[#152a52] transition-colors text-xs sm:text-sm flex-shrink-0 shadow-sm font-medium"
                               >
                                 <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
                                 <span>Study Materials</span>
@@ -3088,7 +3099,7 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                       <div className="flex flex-wrap gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-gray-100 mobile-flex-wrap mobile-gap">
                         <button 
                           onClick={() => handleStartLearning(item._id, item.name)}
-                          className="flex items-center space-x-1.5 sm:space-x-2 bg-green-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-green-700 transition-colors text-xs sm:text-sm flex-shrink-0"
+                          className="flex items-center space-x-1.5 sm:space-x-2 w-full sm:w-auto justify-center bg-[#1a3a6e] text-white px-3 sm:px-4 py-2 rounded-xl hover:bg-[#152a52] transition-colors text-xs sm:text-sm flex-shrink-0 shadow-sm font-medium"
                         >
                           <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                           <span>Start Learning</span>
@@ -3098,11 +3109,12 @@ export const ContentDetailPage: React.FC<ContentDetailPageProps> = ({
                   )}
 
                   {/* Footer */}
-                  <div className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 bg-gray-50 border-t border-gray-100">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500 space-y-1 sm:space-y-0">
-                      <span>ID: {item._id.slice(-8)}</span>
+                  <div className="mt-auto px-3 sm:px-4 py-2.5 bg-[#f4f6fa] border-t border-gray-100/90">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[11px] text-[#5c6b8a] font-medium">
+                      <span className="tabular-nums">ID: {item._id.slice(-8)}</span>
                       <span>Created: {new Date(item.createdAt).toLocaleDateString()}</span>
                     </div>
+                  </div>
                   </div>
                 </div>
               );

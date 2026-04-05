@@ -118,17 +118,7 @@ const DashboardPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        {/* Notebook Background */}
-        <div className="notebook-bg"></div>
-        {/* Geography/Earth Background */}
-        <div className="geography-bg"></div>
-        {/* Animated Stars Background */}
-        <div className="stars">
-          {Array.from({ length: 20 }, (_, i) => (
-            <div key={i} className="star"></div>
-          ))}
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#eef2f7]">
         <div className="content-wrapper text-center">
           <h1 className="text-2xl font-bold notebook-heading mb-4">Loading...</h1>
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -142,21 +132,9 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <>
-      {/* Notebook Background */}
-      <div className="notebook-bg"></div>
-      {/* Geography/Earth Background */}
-      <div className="geography-bg"></div>
-      {/* Animated Stars Background */}
-      <div className="stars">
-        {Array.from({ length: 20 }, (_, i) => (
-          <div key={i} className="star"></div>
-        ))}
-      </div>
-      <div className="content-wrapper">
-        <Dashboard user={user} userData={userData} onLogout={handleLogout} />
-      </div>
-    </>
+    <div className="content-wrapper min-h-screen bg-[#eef2f7]">
+      <Dashboard user={user} userData={userData} onLogout={handleLogout} />
+    </div>
   );
 };
 
