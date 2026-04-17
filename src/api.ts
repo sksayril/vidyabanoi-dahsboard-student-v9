@@ -381,7 +381,16 @@ export class ApiService {
       throw error;
     }
 
-    return response.json();
+    try {
+      return await response.json();
+    } catch {
+      const error = new Error('Invalid JSON from chat start');
+      (error as any).response = {
+        data: { message: 'The server returned an invalid response. Please try again.' },
+        status: response.status,
+      };
+      throw error;
+    }
   }
 
   static async getChatHistory(page: number = 1): Promise<ChatHistoryResponse> {
@@ -430,7 +439,16 @@ export class ApiService {
       throw error;
     }
 
-    return response.json();
+    try {
+      return await response.json();
+    } catch {
+      const error = new Error('Invalid JSON from chat start');
+      (error as any).response = {
+        data: { message: 'The server returned an invalid response. Please try again.' },
+        status: response.status,
+      };
+      throw error;
+    }
   }
 
   static async continueChat(chatId: string, message: string, image?: File, pdf?: File): Promise<ContinueChatResponse> {
@@ -471,7 +489,16 @@ export class ApiService {
       throw error;
     }
 
-    return response.json();
+    try {
+      return await response.json();
+    } catch {
+      const error = new Error('Invalid JSON from chat message');
+      (error as any).response = {
+        data: { message: 'The server returned an invalid response. Please try again.' },
+        status: response.status,
+      };
+      throw error;
+    }
   }
 
   static async getChat(chatId: string): Promise<GetChatResponse> {

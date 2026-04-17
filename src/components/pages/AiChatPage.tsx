@@ -16,7 +16,8 @@ import {
   LogOut,
   ThumbsUp,
   ThumbsDown,
-  Copy
+  Copy,
+  ChevronRight,
 } from 'lucide-react';
 import { startChat, getChatHistory, continueChat, getChat } from '../../api';
 import { ChatMessage, ChatHistoryItem } from '../../types/api';
@@ -127,6 +128,11 @@ export const AiChatPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
+
+  /** Mobile home: input on top + recent + hero (matches reference UI) */
+  const showMobileHomeUi =
+    !isLoadingChat && (!currentChat?.messages?.length);
 
   const quickQuestions = [
     'Explain quantum physics',
@@ -202,6 +208,26 @@ export const AiChatPage: React.FC = () => {
       return true;
     }
     return false;
+  };
+
+  /** Prefer API message; distinguish network failures from generic errors. */
+  const getSendMessageErrorMessage = (error: unknown): string => {
+    const err = error as {
+      message?: string;
+      response?: { data?: Record<string, unknown>; status?: number };
+    };
+    const data = err.response?.data;
+    if (data && typeof data === 'object') {
+      const msg = data.message;
+      if (typeof msg === 'string' && msg.trim()) return msg.trim();
+      const apiErr = data.error;
+      if (typeof apiErr === 'string' && apiErr.trim()) return apiErr.trim();
+    }
+    const net = err.message ?? '';
+    if (/failed to fetch|networkerror|load failed|net::/i.test(net)) {
+      return 'Could not reach the server. Check your internet connection and try again.';
+    }
+    return 'Failed to send message. Please try again.';
   };
 
   // Handle subscription navigation
@@ -462,25 +488,29 @@ export const AiChatPage: React.FC = () => {
       setMessage('');
       setSelectedImage(null);
       setSelectedPdf(null);
-      
-      // Reload chat history
-      await loadChatHistory();
+
+      // Refresh sidebar history — must not fail the send flow if this request errors
+      try {
+        await loadChatHistory();
+      } catch (histErr) {
+        console.warn('Chat history refresh failed after send:', histErr);
+      }
     } catch (error: any) {
       console.error('Error sending message:', error);
-      
+
       // Check if error response contains subscription error first
       if (error.response?.data && checkSubscriptionError(error.response.data)) {
         return;
       }
-      
+
       if (checkAuthFailure(error.response?.data, error.response?.status)) {
         return;
       }
-      
+
       setErrorModal({
         open: true,
         kind: 'generic',
-        message: 'Failed to send message. Please check your connection and try again.',
+        message: getSendMessageErrorMessage(error),
       });
     } finally {
       setIsTyping(false);
@@ -599,7 +629,14 @@ export const AiChatPage: React.FC = () => {
 
   const handleQuickQuestion = (question: string) => {
     setMessage(question);
+    messageInputRef.current?.focus();
   };
+
+  const recentFallbackQuestions = [
+    'Explain noun',
+    'Solve 2x + 5 = 13',
+    'What is photosynthesis?',
+  ] as const;
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -1152,7 +1189,11 @@ export const AiChatPage: React.FC = () => {
 
               <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
               {/* Composer — bottom on mobile (messages scroll above); last on desktop */}
-              <div className="order-2 lg:order-3 shrink-0 max-lg:bg-[#F4F5F9] max-lg:border-t max-lg:border-gray-200/70">
+              <div
+                className={`order-2 lg:order-3 shrink-0 max-lg:bg-[#F4F5F9] max-lg:border-t max-lg:border-gray-200/70 ${
+                  showMobileHomeUi ? 'max-lg:order-1' : 'max-lg:order-2'
+                }`}
+              >
               {/* Compact File Upload Preview */}
               {(selectedImage || selectedPdf) && (
                 <div className={`p-3 max-lg:pt-2 border-t transition-all duration-500 max-lg:border-0 ${
@@ -1222,10 +1263,11 @@ export const AiChatPage: React.FC = () => {
                         <Plus className="h-4 w-4" />
                       </button>
                     <textarea
+                      ref={messageInputRef}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
-                      placeholder="Ask anything…"
+                      placeholder="Ask your question..."
                       className="w-full max-lg:pl-4 max-lg:pr-24 lg:pl-14 lg:pr-36 py-3.5 lg:py-6 text-[15px] leading-snug resize-none border-0 focus:ring-0 focus:outline-none bg-transparent placeholder:text-gray-400 text-[#2D3142]"
                       style={{ fontFamily: 'system-ui, sans-serif', minHeight: '52px', maxHeight: '200px' }}
                       rows={2}
@@ -1366,7 +1408,11 @@ export const AiChatPage: React.FC = () => {
               </div>
 
               {/* Chat Messages - scrollable main area */}
-              <div className={`order-1 lg:order-1 flex-1 flex flex-col min-h-0 overflow-hidden`}>
+              <div
+                className={`order-1 lg:order-1 flex-1 flex flex-col min-h-0 overflow-hidden ${
+                  showMobileHomeUi ? 'max-lg:order-2' : 'max-lg:order-1'
+                }`}
+              >
               <div className={`flex-1 overflow-y-auto min-h-0 p-3 lg:p-3 transition-all duration-500 ${
                 isVoiceEnabled ? 'bg-gradient-to-br from-blue-50 to-blue-100 max-lg:from-[#F4F5F9] max-lg:to-[#F4F5F9]' : 'bg-gradient-to-br from-gray-50 to-white max-lg:from-[#F4F5F9] max-lg:to-[#F4F5F9]'
               }`}>
@@ -1375,68 +1421,130 @@ export const AiChatPage: React.FC = () => {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
                     <p className="text-gray-500">Loading conversation...</p>
                   </div>
-                ) : currentChat?.messages.length === 0 ? (
-                  <div className="text-center py-6 lg:py-8 flex flex-col justify-center h-full">
-                    <div className={`w-14 h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center mx-auto mb-3 lg:mb-4 transition-all duration-500 shadow-lg ${
-                      isVoiceEnabled 
-                        ? 'bg-gradient-to-r from-blue-100 to-blue-200 animate-pulse' 
-                        : 'bg-gradient-to-r from-blue-100 to-blue-200'
-                    }`}>
-                      <Bot className="h-7 w-7 lg:h-8 lg:w-8 text-blue-600" />
-                    </div>
-                    
-                    {/* Fun Welcome Animation */}
-                    <div className="mb-4 animate-bounce">
-                      <span className="text-4xl">👋</span>
-                    </div>
-                    
-                    <h3 className="text-base lg:text-lg font-bold text-gray-900 mb-2">
-                      {isVoiceEnabled ? 'Welcome to Voice AI Assistant!' : 'Welcome to AI Tutor!'}
-                    </h3>
-                    <p className="text-gray-600 mb-4 lg:mb-6 text-sm px-4 max-w-sm mx-auto">
-                      {isVoiceEnabled 
-                        ? '🎤 Start speaking or type your message to begin a conversation'
-                        : '💬 Start a conversation or upload an image/PDF to get help'
-                      }
-                    </p>
-                    
-                    {/* Enhanced Quick Actions - Compact Full Coverage Design */}
-                    <div className="grid grid-cols-1 gap-2 max-w-xs mx-auto px-4 mb-3">
-                      {quickQuestions.slice(0, 4).map((question, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleQuickQuestion(question)}
-                          className={`p-2.5 rounded-lg border-2 transition-all duration-300 text-xs text-gray-700 text-left font-medium hover:shadow-md transform hover:scale-[1.02] ${
-                            index === 0 ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300 hover:border-blue-400 hover:bg-blue-200' :
-                            index === 1 ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300 hover:border-blue-400 hover:bg-blue-200' :
-                            index === 2 ? 'bg-gradient-to-r from-white to-blue-50 border-blue-300 hover:border-blue-400 hover:bg-blue-100' :
-                            'bg-gradient-to-r from-white to-blue-50 border-blue-300 hover:border-blue-400 hover:bg-blue-100'
-                          }`}
-                        >
-                          <span className="mr-2">
-                            {index === 0 ? '🔬' : index === 1 ? '📐' : index === 2 ? '🧪' : '🧮'}
-                          </span>
-                          {question}
-                        </button>
-                      ))}
-                    </div>
-                    
-                    {/* Additional Features Section - Compact */}
-                    <div className="grid grid-cols-2 gap-2 max-w-xs mx-auto px-4">
-                      <div className="p-2 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 text-center hover:scale-105 transition-transform duration-200">
-                        <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-1">
-                          <Image className="h-3 w-3 text-blue-600" />
-                        </div>
-                        <p className="text-xs font-medium text-blue-700">🖼️ Image Analysis</p>
+                ) : !currentChat?.messages?.length ? (
+                  <>
+                    {/* Mobile: reference home — recent questions + hero (composer is flex order above) */}
+                    <div className="lg:hidden flex flex-col pb-4 px-1">
+                      <h3 className="text-sm font-semibold text-[#2E3A59] mb-2 px-2">Recent Questions</h3>
+                      <div className="rounded-2xl bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-gray-100/80 overflow-hidden divide-y divide-gray-100">
+                        {chatHistory.length > 0
+                          ? chatHistory.slice(0, 5).map((chat) => (
+                              <button
+                                key={chat.id}
+                                type="button"
+                                onClick={() => loadSpecificChat(chat.id)}
+                                className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-gray-50 transition-colors"
+                              >
+                                <span className="shrink-0 w-2 h-2 rounded-full bg-[#3B82F6]" aria-hidden />
+                                <span className="flex-1 text-sm text-[#2D3142] line-clamp-2">
+                                  {chat.title?.trim() || chat.lastMessage?.content || 'Chat'}
+                                </span>
+                                <ChevronRight className="h-5 w-5 shrink-0 text-gray-400" aria-hidden />
+                              </button>
+                            ))
+                          : recentFallbackQuestions.map((q) => (
+                              <button
+                                key={q}
+                                type="button"
+                                onClick={() => handleQuickQuestion(q)}
+                                className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-gray-50 transition-colors"
+                              >
+                                <span className="shrink-0 w-2 h-2 rounded-full bg-[#3B82F6]" aria-hidden />
+                                <span className="flex-1 text-sm text-[#2D3142]">{q}</span>
+                                <ChevronRight className="h-5 w-5 shrink-0 text-gray-400" aria-hidden />
+                              </button>
+                            ))}
                       </div>
-                      <div className="p-2 rounded-lg bg-gradient-to-r from-white to-blue-50 border border-blue-200 text-center hover:scale-105 transition-transform duration-200">
-                        <div className="w-6 h-6 bg-blue-50 rounded-lg flex items-center justify-center mx-auto mb-1">
-                          <FileText className="h-3 w-3 text-blue-600" />
+
+                      <div className="mt-5 rounded-3xl overflow-hidden bg-gradient-to-b from-sky-100/90 to-sky-50 border border-sky-200/60 shadow-sm">
+                        <div className="px-4 py-6 flex items-center justify-between gap-3">
+                          <div className="flex flex-col items-center gap-1 min-w-0">
+                            <span className="text-3xl" aria-hidden>
+                              🧑‍🎓
+                            </span>
+                            <span className="text-[10px] font-medium text-sky-800/80">You</span>
+                          </div>
+                          <div className="flex-1 flex flex-col items-center gap-1 px-2">
+                            <div className="rounded-full bg-white/90 border border-sky-200 px-3 py-1.5 text-xs text-sky-700 shadow-sm">
+                              ···
+                            </div>
+                            <div className="h-px w-full border-t border-dotted border-sky-300/80" />
+                          </div>
+                          <div className="flex flex-col items-center gap-1 min-w-0">
+                            <span className="text-3xl" aria-hidden>
+                              🤖
+                            </span>
+                            <span className="text-[10px] font-semibold text-sky-800 bg-white/80 px-1.5 py-0.5 rounded">AI</span>
+                          </div>
                         </div>
-                        <p className="text-xs font-medium text-blue-700">📄 PDF Review</p>
+                        <p className="text-center text-xs text-sky-800/70 pb-4 px-4">
+                          Ask anything — get step-by-step help from your AI tutor.
+                        </p>
                       </div>
                     </div>
-                  </div>
+
+                    {/* Desktop: original welcome + quick prompts */}
+                    <div className="hidden lg:flex text-center py-6 lg:py-8 flex-col justify-center h-full">
+                      <div className={`w-14 h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center mx-auto mb-3 lg:mb-4 transition-all duration-500 shadow-lg ${
+                        isVoiceEnabled
+                          ? 'bg-gradient-to-r from-blue-100 to-blue-200 animate-pulse'
+                          : 'bg-gradient-to-r from-blue-100 to-blue-200'
+                      }`}>
+                        <Bot className="h-7 w-7 lg:h-8 lg:w-8 text-blue-600" />
+                      </div>
+
+                      <div className="mb-4 animate-bounce">
+                        <span className="text-4xl">👋</span>
+                      </div>
+
+                      <h3 className="text-base lg:text-lg font-bold text-gray-900 mb-2">
+                        {isVoiceEnabled ? 'Welcome to Voice AI Assistant!' : 'Welcome to AI Tutor!'}
+                      </h3>
+                      <p className="text-gray-600 mb-4 lg:mb-6 text-sm px-4 max-w-sm mx-auto">
+                        {isVoiceEnabled
+                          ? '🎤 Start speaking or type your message to begin a conversation'
+                          : '💬 Start a conversation or upload an image/PDF to get help'}
+                      </p>
+
+                      <div className="grid grid-cols-1 gap-2 max-w-xs mx-auto px-4 mb-3">
+                        {quickQuestions.slice(0, 4).map((question, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleQuickQuestion(question)}
+                            className={`p-2.5 rounded-lg border-2 transition-all duration-300 text-xs text-gray-700 text-left font-medium hover:shadow-md transform hover:scale-[1.02] ${
+                              index === 0
+                                ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300 hover:border-blue-400 hover:bg-blue-200'
+                                : index === 1
+                                  ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300 hover:border-blue-400 hover:bg-blue-200'
+                                  : index === 2
+                                    ? 'bg-gradient-to-r from-white to-blue-50 border-blue-300 hover:border-blue-400 hover:bg-blue-100'
+                                    : 'bg-gradient-to-r from-white to-blue-50 border-blue-300 hover:border-blue-400 hover:bg-blue-100'
+                            }`}
+                          >
+                            <span className="mr-2">
+                              {index === 0 ? '🔬' : index === 1 ? '📐' : index === 2 ? '🧪' : '🧮'}
+                            </span>
+                            {question}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 max-w-xs mx-auto px-4">
+                        <div className="p-2 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 text-center hover:scale-105 transition-transform duration-200">
+                          <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-1">
+                            <Image className="h-3 w-3 text-blue-600" />
+                          </div>
+                          <p className="text-xs font-medium text-blue-700">🖼️ Image Analysis</p>
+                        </div>
+                        <div className="p-2 rounded-lg bg-gradient-to-r from-white to-blue-50 border border-blue-200 text-center hover:scale-105 transition-transform duration-200">
+                          <div className="w-6 h-6 bg-blue-50 rounded-lg flex items-center justify-center mx-auto mb-1">
+                            <FileText className="h-3 w-3 text-blue-600" />
+                          </div>
+                          <p className="text-xs font-medium text-blue-700">📄 PDF Review</p>
+                        </div>
+                      </div>
+                    </div>
+                  </>
                 ) : (
                   <div className="space-y-3 pb-4">
                     {currentChat?.messages.map(renderMessage)}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Brain, 
   Target,
@@ -6,25 +6,27 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  ArrowRight,
   RefreshCw,
-  Home,
   Star,
   Trophy,
-  Plus,
   Edit3,
-  Eye
+  Eye,
+  FileText,
+  FolderOpen,
+  FilePlus,
+  ChevronRight,
+  BookOpen,
 } from 'lucide-react';
 import { 
   QuizGenerationRequest, 
   QuizGenerationResponse, 
-  QuizQuestion
 } from '../../types/api';
 import { generateAIQuiz } from '../../api';
 
 type QuizState = 'topic-selection' | 'generating' | 'quiz-taking' | 'results' | 'review';
 type ActiveTab = 'available' | 'history';
 type TopicMode = 'predefined' | 'custom';
+type AnalysisReportTab = 'overview' | 'accuracy' | 'weak-topics';
 
 // Simple Timer Component
 const SimpleTimer: React.FC<{ 
@@ -86,6 +88,146 @@ interface QuizResult {
   }[];
 }
 
+/** Preview tiles + copy change with selected quiz topic */
+type PreviewTile = { label: string; box: string };
+type TopicPreview = { blurb: string; badge: string; tiles: PreviewTile[] };
+
+const TILE_BOX = [
+  'bg-rose-100 border-rose-200/80 text-rose-800',
+  'bg-sky-100 border-sky-200/80 text-sky-900',
+  'bg-cyan-100 border-cyan-200/80 text-cyan-900',
+  'bg-amber-100 border-amber-200/80 text-amber-900',
+] as const;
+
+const DEFAULT_TOPIC_PREVIEW: TopicPreview = {
+  blurb:
+    'Real numbers combine rationals and irrationals — number lines, fractions, roots, and π. Build fluency before your exam.',
+  badge: '+5′',
+  tiles: [
+    { label: '-5', box: TILE_BOX[0] },
+    { label: '0', box: TILE_BOX[1] },
+    { label: '½', box: TILE_BOX[2] },
+    { label: 'π', box: TILE_BOX[3] },
+  ],
+};
+
+const TOPIC_PREVIEW_MAP: Record<string, TopicPreview> = {
+  Algebra: {
+    blurb:
+      'Practice multiple-choice questions on Algebra. AI builds a balanced set for your level.',
+    badge: 'x²',
+    tiles: [
+      { label: '-5', box: TILE_BOX[0] },
+      { label: '0', box: TILE_BOX[1] },
+      { label: '½', box: TILE_BOX[2] },
+      { label: 'π', box: TILE_BOX[3] },
+    ],
+  },
+  Geometry: {
+    blurb:
+      'Shapes, angles, area, and volume — sharpen reasoning with diagrams and definitions in every quiz.',
+    badge: '∠',
+    tiles: [
+      { label: '△', box: TILE_BOX[0] },
+      { label: '°', box: TILE_BOX[1] },
+      { label: 'π', box: TILE_BOX[2] },
+      { label: 'r', box: TILE_BOX[3] },
+    ],
+  },
+  Calculus: {
+    blurb:
+      'Limits, derivatives, and change — bite-sized MCQs that build intuition step by step.',
+    badge: '∫',
+    tiles: [
+      { label: 'lim', box: TILE_BOX[0] },
+      { label: 'd', box: TILE_BOX[1] },
+      { label: '∫', box: TILE_BOX[2] },
+      { label: 'e', box: TILE_BOX[3] },
+    ],
+  },
+  Statistics: {
+    blurb:
+      'Data, charts, and probability — interpret results and choose the right method under exam-style prompts.',
+    badge: 'μ',
+    tiles: [
+      { label: 'μ', box: TILE_BOX[0] },
+      { label: 'σ', box: TILE_BOX[1] },
+      { label: '%', box: TILE_BOX[2] },
+      { label: 'n', box: TILE_BOX[3] },
+    ],
+  },
+  Trigonometry: {
+    blurb:
+      'Sine, cosine, and angles — identities and triangles in quick, focused multiple-choice practice.',
+    badge: 'θ',
+    tiles: [
+      { label: 'sin', box: TILE_BOX[0] },
+      { label: 'cos', box: TILE_BOX[1] },
+      { label: 'θ', box: TILE_BOX[2] },
+      { label: 'π', box: TILE_BOX[3] },
+    ],
+  },
+  Physics: {
+    blurb:
+      'Forces, motion, and energy — conceptual and numerical items aligned with school-level physics.',
+    badge: 'F',
+    tiles: [
+      { label: 'F', box: TILE_BOX[0] },
+      { label: 'v', box: TILE_BOX[1] },
+      { label: 'a', box: TILE_BOX[2] },
+      { label: 'W', box: TILE_BOX[3] },
+    ],
+  },
+  Chemistry: {
+    blurb:
+      'Atoms, reactions, and equations — balance concepts and symbols with exam-style MCQs.',
+    badge: '→',
+    tiles: [
+      { label: 'H₂O', box: TILE_BOX[0] },
+      { label: 'pH', box: TILE_BOX[1] },
+      { label: '→', box: TILE_BOX[2] },
+      { label: 'Δ', box: TILE_BOX[3] },
+    ],
+  },
+  Biology: {
+    blurb:
+      'Cells, life processes, and systems — recall and apply ideas through varied question stems.',
+    badge: '🧬',
+    tiles: [
+      { label: 'DNA', box: TILE_BOX[0] },
+      { label: 'cell', box: TILE_BOX[1] },
+      { label: 'ATP', box: TILE_BOX[2] },
+      { label: 'gene', box: TILE_BOX[3] },
+    ],
+  },
+};
+
+function previewForTopicKey(topicKey: string): TopicPreview {
+  const t = topicKey.trim();
+  if (!t) return DEFAULT_TOPIC_PREVIEW;
+  if (TOPIC_PREVIEW_MAP[t]) return TOPIC_PREVIEW_MAP[t];
+  const ci = Object.keys(TOPIC_PREVIEW_MAP).find((k) => k.toLowerCase() === t.toLowerCase());
+  if (ci) return TOPIC_PREVIEW_MAP[ci];
+
+  let h = 0;
+  for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0;
+  const sets: [string, string, string, string][] = [
+    ['①', '②', '③', '④'],
+    ['A', 'B', 'C', 'D'],
+    ['•', '→', '★', '?'],
+    ['Q1', 'Q2', 'Q3', 'Q4'],
+  ];
+  const labels = sets[Math.abs(h) % sets.length];
+  return {
+    blurb: `Practice multiple-choice questions on ${t}. AI builds a balanced set for your level.`,
+    badge: t.length <= 4 ? t : `${t.slice(0, 3)}…`,
+    tiles: labels.map((label, i) => ({
+      label,
+      box: TILE_BOX[i % TILE_BOX.length],
+    })),
+  };
+}
+
 export const AiQuizPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('available');
   const [quizState, setQuizState] = useState<QuizState>('topic-selection');
@@ -96,11 +238,13 @@ export const AiQuizPage: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: number }>({});
   const [quizResults, setQuizResults] = useState<QuizResult | null>(null);
+  const [analysisTab, setAnalysisTab] = useState<AnalysisReportTab>('overview');
   const [quizHistory, setQuizHistory] = useState<QuizResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [quizStartTime, setQuizStartTime] = useState<number>(0);
   const [questionCount, setQuestionCount] = useState(15); // Default 15 questions
+  const customTopicInputRef = useRef<HTMLInputElement>(null);
 
   // Simple topics for class 5-10 students
   const topics = {
@@ -225,11 +369,11 @@ export const AiQuizPage: React.FC = () => {
       
       return {
         questionId: question.id,
-        selectedAnswer: userAnswer,
-        correctAnswer: question.correctAnswer,
+        selectedAnswer: userAnswer ?? -1,
+        correctAnswer: Number(question.correctAnswer),
         isCorrect,
         question: question.question,
-        options: question.options
+        options: question.options ?? [],
       };
     });
 
@@ -266,6 +410,7 @@ export const AiQuizPage: React.FC = () => {
     setCurrentQuestionIndex(0);
     setUserAnswers({});
     setQuizResults(null);
+    setAnalysisTab('overview');
     setError('');
   };
 
@@ -275,198 +420,392 @@ export const AiQuizPage: React.FC = () => {
     return { message: 'Keep Practicing!', color: 'text-orange-600' };
   };
 
-  // Topic Selection Screen
-  if (quizState === 'topic-selection') {
+  const formatDurationShort = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    if (m === 0) return `${s}s`;
+    return `${m}m ${s}s`;
+  };
+
+  const parentSubjectForTopic = (topic: string): string => {
+    for (const [parent, subs] of Object.entries(topics)) {
+      if ((subs as string[]).includes(topic)) return parent;
+    }
+    return 'General';
+  };
+
+  const quarterSegmentsForResult = (result: QuizResult) => {
+    const { answers, timeTaken } = result;
+    const n = Math.max(1, answers.length);
+    const chunk = Math.max(1, Math.ceil(n / 4));
+    const segs: { acc: number; label: string }[] = [];
+    for (let i = 0; i < 4; i++) {
+      const slice = answers.slice(i * chunk, (i + 1) * chunk);
+      const correct = slice.filter((a) => a.isCorrect).length;
+      const acc = slice.length ? Math.round((correct / slice.length) * 100) : 0;
+      const sliceSecs = (timeTaken / n) * slice.length;
+      const label =
+        sliceSecs >= 60 ? `${Math.round(sliceSecs / 60)}m` : `${sliceSecs.toFixed(1)}s`;
+      segs.push({ acc, label });
+    }
+    return segs;
+  };
+
+  // History while on topic screen (must be before topic-selection return)
+  if (quizState === 'topic-selection' && activeTab === 'history') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 p-4">
-        {/* Header */}
-        <div className="bg-blue-800 rounded-t-xl p-4 mb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-yellow-300 rounded-lg flex items-center justify-center">
-                <Brain className="h-6 w-6 text-blue-800" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-yellow-300">AI Quiz</h1>
-                <p className="text-yellow-200 text-sm">Learning Platform</p>
-              </div>
-                </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setActiveTab('available')}
-                className={`px-4 py-2 rounded-lg font-medium ${
-                  activeTab === 'available' 
-                    ? 'bg-green-500 text-white' 
-                    : 'bg-white text-gray-700'
-                }`}
-              >
-                Available
-              </button>
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`px-4 py-2 rounded-lg font-medium ${
-                  activeTab === 'history' 
-                    ? 'bg-orange-500 text-white' 
-                    : 'bg-white text-gray-700'
-                }`}
-              >
-                History
-              </button>
-            </div>
-      </div>
-    </div>
-
-        {/* Main Content */}
-        <div className="bg-white rounded-xl p-6 shadow-lg">
-          {/* AI Quiz Generator Section */}
-          <div className="text-center mb-8">
-            <div className="relative inline-block mb-4">
-              <div className="w-24 h-24 bg-yellow-200 rounded-full flex items-center justify-center">
-                <Brain className="h-12 w-12 text-orange-500" />
-              </div>
-            </div>
-            <h2 className="text-3xl font-bold text-blue-800 mb-2">AI Quiz Generator</h2>
-            <p className="text-blue-700 text-lg">Choose a topic and let AI create a personalized quiz for you!</p>
+      <div className="min-h-screen bg-[#eef2f7] -mx-3 sm:-mx-6 lg:mx-0 px-3 sm:px-4 pb-28 max-w-lg lg:max-w-xl mx-auto pt-1">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Star className="w-6 h-6 text-[#1a3a6e]" />
+            <h1 className="text-lg font-bold text-[#1a3a6e]">Quiz History</h1>
           </div>
-
-          {/* Question Count Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-blue-800 mb-3">
-              Number of Questions:
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[10, 15, 20].map((count) => (
-                <button
-                  key={count}
-                  onClick={() => setQuestionCount(count)}
-                  className={`py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
-                    questionCount === count
-                      ? 'bg-blue-800 text-yellow-300'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
+          <button
+            type="button"
+            onClick={() => setActiveTab('available')}
+            className="px-3 py-1.5 rounded-lg bg-[#1a3a6e] text-white text-xs font-semibold"
+          >
+            Available
+          </button>
+        </div>
+        <div className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgba(26,58,110,0.08)] border border-gray-100/90">
+          {quizHistory.length === 0 ? (
+            <div className="text-center py-10">
+              <Star className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-[#1a3a6e] font-medium">No quiz history yet</p>
+              <p className="text-sm text-slate-500 mt-1">Complete a mock test to see scores here.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {quizHistory.map((result, index) => (
+                <div
+                  key={index}
+                  className="p-3 rounded-xl bg-slate-50 border border-gray-100"
                 >
-                  {count} Questions
-                </button>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="font-semibold text-[#1a3a6e] text-sm truncate">{result.topic}</span>
+                    <span className="text-lg font-bold text-[#1a3a6e] shrink-0">{result.score}%</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-slate-500">
+                    <span>
+                      {result.correctAnswers}/{result.totalQuestions} correct
+                      {result.isCustom && (
+                        <span className="ml-2 text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full">
+                          Custom
+                        </span>
+                      )}
+                    </span>
+                    <span>
+                      {Math.floor(result.timeTaken / 60)}:{(result.timeTaken % 60).toString().padStart(2, '0')}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-1">
+                    {new Date(result.completedAt).toLocaleDateString()}
+                  </div>
+                </div>
               ))}
             </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Topic Selection Screen — Vidyavani-style mock test layout
+  if (quizState === 'topic-selection') {
+    const effectiveTopic =
+      topicMode === 'custom' && customTopic.trim()
+        ? customTopic.trim()
+        : selectedTopic || '';
+    const topicPreview = previewForTopicKey(effectiveTopic);
+    const overviewTitle = effectiveTopic
+      ? `Explain ${effectiveTopic}`
+      : 'Explain Real Numbers';
+    const overviewBlurb = topicPreview.blurb;
+    const estMinutes = Math.max(10, Math.round(questionCount * 1.33));
+    const canGenerate = Boolean(
+      (topicMode === 'custom' && customTopic.trim().length >= 3) ||
+        (topicMode === 'predefined' && selectedTopic)
+    );
+
+    return (
+      <div className="min-h-screen bg-[#eef2f7] -mx-3 sm:-mx-6 lg:mx-0 px-3 sm:px-4 pb-28 max-w-lg lg:max-w-xl mx-auto">
+        {/* Top bar */}
+        <div className="flex items-center justify-between gap-2 mb-4 pt-1">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-[#1a3a6e] flex items-center justify-center shrink-0">
+              <Brain className="h-5 w-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold text-[#1a3a6e] leading-tight truncate">Mock Test</h1>
+              <p className="text-[11px] text-slate-500">AI Quiz</p>
+            </div>
           </div>
-
-          {/* Topic Mode Selection */}
-          <div className="flex space-x-2 mb-6">
+          <div className="flex rounded-xl bg-white p-0.5 shadow-sm border border-gray-100 shrink-0">
             <button
-              onClick={() => setTopicMode('predefined')}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
-                topicMode === 'predefined'
-                  ? 'bg-blue-800 text-yellow-300'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              type="button"
+              onClick={() => setActiveTab('available')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                activeTab === 'available' ? 'bg-[#1a3a6e] text-white' : 'text-[#1a3a6e]'
               }`}
             >
-              <Target className="h-5 w-5 inline mr-2" />
-              Predefined Topics
+              Available
             </button>
             <button
-              onClick={() => setTopicMode('custom')}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
-                topicMode === 'custom'
-                  ? 'bg-blue-800 text-yellow-300'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              type="button"
+              onClick={() => setActiveTab('history')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                activeTab === 'history' ? 'bg-[#1a3a6e] text-white' : 'text-[#1a3a6e]'
               }`}
             >
-              <Edit3 className="h-5 w-5 inline mr-2" />
-              Custom Topic
-            </button>
-              </div>
-
-          {/* Topic Selection */}
-          <div className="space-y-6">
-            {topicMode === 'predefined' ? (
-              <>
-                <div className="flex items-center space-x-2 mb-4">
-                  <Target className="h-6 w-6 text-orange-500" />
-                  <h3 className="text-xl font-bold text-blue-800">Select Your Topic</h3>
-              </div>
-
-                {Object.entries(topics).map(([subject, subjectTopics]) => (
-                  <div key={subject} className="space-y-3">
-                    <h4 className="text-lg font-semibold text-blue-800">{subject}</h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      {subjectTopics.map((topic) => (
-                        <button
-                          key={topic}
-                          onClick={() => handleTopicSelection(topic)}
-                          className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                            selectedTopic === topic
-                              ? 'border-blue-800 bg-blue-50 text-blue-800'
-                              : 'border-gray-300 bg-gray-50 text-gray-700 hover:border-blue-400'
-                          }`}
-                        >
-                          {topic}
-                        </button>
-                      ))}
-              </div>
-            </div>
-                ))}
-              </>
-            ) : (
-              <>
-                <div className="flex items-center space-x-2 mb-4">
-                  <Edit3 className="h-6 w-6 text-orange-500" />
-                  <h3 className="text-xl font-bold text-blue-800">Enter Your Custom Topic</h3>
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-blue-800 mb-2">
-                      What would you like to learn about?
-                    </label>
-                    <input
-                      type="text"
-                      value={customTopic}
-                      onChange={(e) => handleCustomTopic(e.target.value)}
-                      placeholder="e.g., Solar System, Ancient Egypt, Programming Basics..."
-                      className="w-full p-4 border-2 border-gray-300 rounded-lg focus:border-blue-800 focus:outline-none text-blue-800 placeholder-gray-500"
-                    />
-                  </div>
-                  
-                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                    <h4 className="font-medium text-blue-800 mb-2">💡 Tips for better quizzes:</h4>
-                    <ul className="text-sm text-blue-700 space-y-1">
-                      <li>• Be specific (e.g., "Photosynthesis" instead of "Science")</li>
-                      <li>• Use clear, simple language</li>
-                      <li>• Focus on one topic at a time</li>
-                    </ul>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {error && (
-              <div className="text-red-600 text-center bg-red-50 p-3 rounded-lg">
-                {error}
-              </div>
-            )}
-
-            <button
-              onClick={generateQuiz}
-              disabled={!selectedTopic && !customTopic.trim() || loading}
-              className="w-full bg-blue-800 text-yellow-300 py-4 rounded-lg font-bold text-lg hover:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <RefreshCw className="h-5 w-5 animate-spin mr-2" />
-                  Generating Quiz...
-                </div>
-              ) : (
-                <div className="flex items-center justify-center">
-                  <Play className="h-5 w-5 mr-2" />
-                  Start Quiz ({questionCount} Questions)
-            </div>
-              )}
+              History
             </button>
           </div>
         </div>
-    </div>
-  );
+
+        {/* 1) Topic overview card */}
+        <section
+          className="bg-white rounded-2xl p-4 sm:p-5 shadow-[0_4px_20px_rgba(26,58,110,0.08)] border border-gray-100/90 mb-4"
+        >
+          <h2
+            className="text-base sm:text-lg font-bold text-[#1a3a6e] leading-snug pr-2"
+            style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+          >
+            {overviewTitle}
+          </h2>
+          <div className="flex gap-3 mt-3">
+            <div
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 shadow-md text-white font-bold text-xs sm:text-sm px-1 text-center leading-tight"
+              title="Topic hint"
+            >
+              {topicPreview.badge}
+            </div>
+            <p
+              className="text-[13px] sm:text-sm text-[#1e3a5c]/90 leading-relaxed flex-1"
+              style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+            >
+              {overviewBlurb}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 pt-3 border-t border-slate-100 text-[12px] sm:text-sm text-[#2563eb] font-medium">
+            <span className="inline-flex items-center gap-1.5">
+              <FileText className="w-4 h-4 shrink-0 opacity-90" />
+              {questionCount} Questions
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Clock className="w-4 h-4 shrink-0 opacity-90" />~{estMinutes} minutes
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Eye className="w-4 h-4 shrink-0 opacity-90" />
+              100%
+            </span>
+          </div>
+        </section>
+
+        {/* 2) Mock test — decorative number tiles */}
+        <section className="bg-white rounded-2xl p-4 sm:p-5 shadow-[0_4px_20px_rgba(26,58,110,0.08)] border border-gray-100/90 mb-4">
+          <h3
+            className="text-sm font-bold text-[#1a3a6e] mb-3"
+            style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+          >
+            Mock Test
+          </h3>
+          <div className="grid grid-cols-4 gap-2 sm:gap-3">
+            {topicPreview.tiles.map((cell) => (
+              <div
+                key={cell.label}
+                className={`aspect-square rounded-xl border-2 flex items-center justify-center text-[11px] sm:text-lg font-bold shadow-sm px-0.5 text-center leading-tight ${cell.box}`}
+              >
+                {cell.label}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Question count */}
+        <div className="mb-4">
+          <p
+            className="text-xs font-semibold text-[#1a3a6e] mb-2"
+            style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+          >
+            Questions in test
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            {[10, 15, 20].map((count) => (
+              <button
+                key={count}
+                type="button"
+                onClick={() => setQuestionCount(count)}
+                className={`py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${
+                  questionCount === count
+                    ? 'border-[#1a3a6e] bg-[#1a3a6e] text-white'
+                    : 'border-gray-200 bg-white text-[#1a3a6e] hover:border-[#1a3a6e]/40'
+                }`}
+              >
+                {count}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Topic source toggle + pickers */}
+        <div className="flex gap-2 mb-3">
+          <button
+            type="button"
+            onClick={() => setTopicMode('predefined')}
+            className={`flex-1 py-2.5 rounded-xl text-xs font-semibold border transition-colors ${
+              topicMode === 'predefined'
+                ? 'border-[#1a3a6e] bg-[#1a3a6e] text-white'
+                : 'border-gray-200 bg-white text-[#1a3a6e]'
+            }`}
+          >
+            <Target className="w-4 h-4 inline mr-1 -mt-0.5" />
+            Topics
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setTopicMode('custom');
+              setTimeout(() => customTopicInputRef.current?.focus(), 0);
+            }}
+            className={`flex-1 py-2.5 rounded-xl text-xs font-semibold border transition-colors ${
+              topicMode === 'custom'
+                ? 'border-[#1a3a6e] bg-[#1a3a6e] text-white'
+                : 'border-gray-200 bg-white text-[#1a3a6e]'
+            }`}
+          >
+            <Edit3 className="w-4 h-4 inline mr-1 -mt-0.5" />
+            Custom
+          </button>
+        </div>
+
+        {topicMode === 'predefined' ? (
+          <div className="space-y-3 mb-6">
+            {Object.entries(topics).map(([subject, subjectTopics]) => (
+              <div key={subject}>
+                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2">{subject}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {subjectTopics.map((topic) => (
+                    <button
+                      key={topic}
+                      type="button"
+                      onClick={() => handleTopicSelection(topic)}
+                      className={`p-3 rounded-xl border-2 text-left text-sm font-medium transition-all ${
+                        selectedTopic === topic
+                          ? 'border-[#1a3a6e] bg-blue-50/80 text-[#1a3a6e]'
+                          : 'border-gray-100 bg-white text-[#334155] hover:border-[#1a3a6e]/30'
+                      }`}
+                    >
+                      {topic}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mb-6" id="custom-topic-anchor">
+            <label className="block text-xs font-semibold text-[#1a3a6e] mb-2">Your topic</label>
+            <input
+              ref={customTopicInputRef}
+              type="text"
+              value={customTopic}
+              onChange={(e) => handleCustomTopic(e.target.value)}
+              placeholder="e.g. Real Numbers, Photosynthesis…"
+              className="w-full p-3.5 rounded-xl border-2 border-gray-200 focus:border-[#1a3a6e] focus:outline-none text-[#1a3a6e] placeholder:text-slate-400 text-sm bg-white"
+            />
+            <p className="text-[11px] text-slate-500 mt-2">At least 3 characters. Be specific for better questions.</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="text-red-600 text-center bg-red-50 border border-red-100 p-3 rounded-xl text-sm mb-4">
+            {error}
+          </div>
+        )}
+
+        {/* 3) Test analytics — dual CTAs */}
+        <h3 className="text-sm font-bold text-[#1a3a6e] mb-3">Test Analytics</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.06)] flex flex-col">
+            <div className="flex items-start gap-3 mb-2">
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-400 to-amber-300 flex items-center justify-center shadow-sm">
+                <FolderOpen className="w-6 h-6 text-white drop-shadow" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-[#1a3a6e] text-sm">Mock Test</p>
+                <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                  AI builds {questionCount} MCQs from your selected topic.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={generateQuiz}
+              disabled={!canGenerate || loading}
+              className="mt-auto w-full py-2.5 rounded-full bg-sky-100 hover:bg-sky-200 text-[#1a3a6e] text-sm font-bold border border-sky-200/80 disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? (
+                <span className="inline-flex items-center justify-center gap-2">
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Generating…
+                </span>
+              ) : (
+                'Generate Test'
+              )}
+            </button>
+          </div>
+
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.06)] flex flex-col">
+            <div className="flex items-start gap-3 mb-2">
+              <div className="w-11 h-11 rounded-xl bg-[#e8f0fe] flex items-center justify-center border border-blue-100">
+                <FilePlus className="w-6 h-6 text-[#1a3a6e]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-[#1a3a6e] text-sm">Create Test</p>
+                <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                  Write any topic — perfect for revision and weak areas.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setTopicMode('custom');
+                setSelectedTopic('');
+                setTimeout(() => {
+                  customTopicInputRef.current?.focus();
+                  document.getElementById('custom-topic-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 0);
+              }}
+              className="mt-auto w-full py-2.5 rounded-full bg-sky-100 hover:bg-sky-200 text-[#1a3a6e] text-sm font-bold border border-sky-200/80 transition-colors"
+            >
+              Create Test
+            </button>
+          </div>
+        </div>
+
+        {/* Secondary full-width start (same as Generate when topic set) */}
+        <button
+          type="button"
+          onClick={generateQuiz}
+          disabled={!canGenerate || loading}
+          className="w-full py-3.5 rounded-2xl bg-[#1a3a6e] text-white text-sm font-bold shadow-md hover:bg-[#152a52] disabled:opacity-45 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {loading ? (
+            <>
+              <RefreshCw className="h-5 w-5 animate-spin" />
+              Generating quiz…
+            </>
+          ) : (
+            <>
+              <Play className="h-5 w-5" />
+              Start quiz · {questionCount} questions
+            </>
+          )}
+        </button>
+      </div>
+    );
   }
 
   // Quiz Taking Screen
@@ -510,7 +849,7 @@ export const AiQuizPage: React.FC = () => {
           <h2 className="text-xl font-bold text-blue-800 mb-6">{currentQuestion.question}</h2>
           
           <div className="space-y-3">
-            {currentQuestion.options.map((option, index) => (
+            {(currentQuestion.options ?? []).map((option, index) => (
               <button
                 key={index}
                 onClick={() => handleAnswerSelect(currentQuestion.id, index)}
@@ -546,77 +885,272 @@ export const AiQuizPage: React.FC = () => {
     );
   }
 
-  // Results Screen
+  // Results Screen — Mock Test Analysis Report
   if (quizState === 'results' && quizResults) {
     const performance = getPerformanceMessage(quizResults.score);
+    const segments = quarterSegmentsForResult(quizResults);
+    const maxBar = Math.max(10, ...segments.map((s) => s.acc));
+    const parentSubject = parentSubjectForTopic(quizResults.topic);
+    const sameTopicAttempts = quizHistory.filter((r) => r.topic === quizResults.topic).length;
+    const wrongAnswers = quizResults.answers.filter((a) => !a.isCorrect);
+    const accuracyPct =
+      quizResults.totalQuestions > 0
+        ? Math.round((quizResults.correctAnswers / quizResults.totalQuestions) * 100)
+        : 0;
+
+    const analysisTabs: { id: AnalysisReportTab; label: string }[] = [
+      { id: 'overview', label: 'Overview' },
+      { id: 'accuracy', label: 'Accuracy' },
+      { id: 'weak-topics', label: 'Weak Topics' },
+    ];
 
     return (
-      <div className="min-h-screen bg-yellow-100 p-4">
-        {/* Header */}
-        <div className="bg-blue-800 rounded-t-xl p-4 mb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Trophy className="h-6 w-6 text-yellow-300" />
-              <h1 className="text-xl font-bold text-yellow-300">Quiz Results</h1>
-            </div>
+      <div className="min-h-screen bg-[#eef2f7] -mx-3 sm:-mx-6 lg:mx-0 px-3 sm:px-4 pb-28 max-w-lg lg:max-w-xl mx-auto pt-2">
+        <div className="flex items-center gap-2 mb-3">
+          <Trophy className="h-7 w-7 text-[#2563eb]" />
+          <div>
+            <h1 className="text-lg font-bold text-[#1e293b] leading-tight">Mock Test Analysis</h1>
+            <p className="text-xs text-slate-500">Performance report</p>
           </div>
         </div>
 
-        {/* Results Card */}
-        <div className="bg-white rounded-xl p-6 shadow-lg mb-4">
-          <div className="text-center mb-6">
-            <div className="w-20 h-20 bg-blue-800 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trophy className="h-10 w-10 text-yellow-300" />
+        {/* Segmented tabs */}
+        <div className="flex rounded-2xl bg-white p-1 shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-gray-100 mb-4">
+          {analysisTabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setAnalysisTab(t.id)}
+              className={`flex-1 py-2.5 text-xs font-semibold rounded-xl transition-colors ${
+                analysisTab === t.id
+                  ? 'bg-[#2563eb] text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {analysisTab === 'overview' && (
+          <>
+            {/* Chapter performance */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.06)] p-4 mb-4">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shrink-0">
+                  <BookOpen className="h-5 w-5 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-[#1e293b]">
+                    Chapter: <span className="text-[#2563eb]">{quizResults.topic}</span>
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Mock tests attempted:{' '}
+                    <span className="font-semibold text-slate-700">{sameTopicAttempts}</span>
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-slate-400 mb-2">Score by quarter of this test (time share per segment)</p>
+              <div className="flex items-end justify-between gap-2 h-36 pl-1 pr-1 border-b border-slate-100 pb-2">
+                {segments.map((seg, i) => (
+                  <div key={i} className="flex flex-col items-center flex-1 gap-1.5">
+                    <div className="relative w-full flex flex-col justify-end items-center h-28 rounded-t-lg overflow-hidden bg-slate-100/80">
+                      <div
+                        className="w-[72%] rounded-t-md bg-gradient-to-t from-[#22c55e] to-emerald-300 transition-all"
+                        style={{ height: `${(seg.acc / maxBar) * 100}%`, minHeight: seg.acc > 0 ? '12%' : '4%' }}
+                      />
+                      <div
+                        className="absolute bottom-0 w-[88%] rounded-t bg-[#2563eb]/25"
+                        style={{ height: `${Math.min(100, (seg.acc / maxBar) * 100 + 8)}%` }}
+                        aria-hidden
+                      />
+                    </div>
+                    <span className="text-[10px] font-medium text-slate-500 tabular-nums">{seg.label}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between text-[10px] text-slate-400 mt-1 px-0.5">
+                <span>0</span>
+                <span>50</span>
+                <span>100</span>
+              </div>
             </div>
-            <h2 className="text-2xl font-bold text-blue-800 mb-2">{performance.message}</h2>
-            <div className="text-4xl font-bold text-blue-800 mb-2">{quizResults.score}%</div>
-            <p className="text-blue-600">You got {quizResults.correctAnswers} out of {quizResults.totalQuestions} questions correct!</p>
-            
-            {/* Topic Display */}
-            <div className="mt-4 p-3 bg-yellow-100 rounded-lg">
-              <p className="text-blue-800 font-medium">
-                Topic: {quizResults.topic}
-                {quizResults.isCustom && (
-                  <span className="ml-2 text-sm bg-orange-500 text-white px-2 py-1 rounded-full">
-                    Custom
+
+            {/* Weak chapter summary */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.06)] p-4 mb-4">
+              <button
+                type="button"
+                onClick={() => setAnalysisTab('weak-topics')}
+                className="w-full flex items-center justify-between gap-2 text-left mb-3 group"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                    <Target className="h-4 w-4 text-amber-700" />
+                  </div>
+                  <span className="text-sm font-bold text-[#1e293b]">Weak chapter test</span>
+                </div>
+                <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-[#2563eb] shrink-0" />
+              </button>
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                <span className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-sky-50 text-sky-800 border border-sky-100">
+                  {parentSubject}
+                </span>
+                <span className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-violet-50 text-violet-800 border border-violet-100">
+                  {quizResults.isCustom ? 'Custom topic' : 'Curriculum'}
+                </span>
+                <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+                  {quizResults.totalQuestions} Q
+                </span>
+              </div>
+
+              <div className="rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
+                <div className="flex items-center gap-3 px-3 py-2.5 bg-white">
+                  <span className="w-2.5 h-2.5 rounded-full bg-orange-400 shrink-0" />
+                  <span className="text-xs text-slate-600 flex-1">Score</span>
+                  <span className="text-xs font-bold text-[#1e293b] tabular-nums">{quizResults.score}%</span>
+                  <span className="text-[11px] text-slate-500 tabular-nums w-[52px] text-right">
+                    {formatDurationShort(quizResults.timeTaken)}
                   </span>
-                )}
-              </p>
-            </div>
-          </div>
+                </div>
+                <div className="flex items-center gap-3 px-3 py-2.5 bg-slate-50/80">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0" />
+                  <span className="text-xs text-slate-600 flex-1">Correct</span>
+                  <span className="text-xs font-bold text-[#1e293b] tabular-nums">
+                    {quizResults.correctAnswers}/{quizResults.totalQuestions}
+                  </span>
+                  <span className="text-[11px] text-slate-500 tabular-nums w-[52px] text-right">
+                    {accuracyPct}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 px-3 py-2.5 bg-white">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#2563eb] shrink-0" />
+                  <span className="text-xs text-slate-600 flex-1">To review</span>
+                  <span className="text-xs font-bold text-[#1e293b] tabular-nums">{wrongAnswers.length}</span>
+                  <span className="text-[11px] text-slate-500 w-[52px] text-right">items</span>
+                </div>
+              </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-yellow-100 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-blue-800">{quizResults.correctAnswers}</div>
-              <div className="text-blue-600">Correct</div>
+              <button
+                type="button"
+                onClick={() => setQuizState('review')}
+                className="mt-4 w-full py-3.5 rounded-2xl bg-[#2563eb] text-white text-sm font-bold shadow-md shadow-blue-500/20 hover:bg-blue-700 active:scale-[0.99] transition-transform"
+              >
+                Review answers
+              </button>
             </div>
-            <div className="bg-yellow-100 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-blue-800">{Math.floor(quizResults.timeTaken / 60)}:{(quizResults.timeTaken % 60).toString().padStart(2, '0')}</div>
-              <div className="text-blue-600">Time</div>
-            </div>
-          </div>
+          </>
+        )}
 
-          {/* Action Buttons */}
-          <div className="space-y-3">
+        {analysisTab === 'accuracy' && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.06)] p-5 mb-4">
+            <h2 className="text-sm font-bold text-[#1e293b] mb-4">Accuracy breakdown</h2>
+            <div className="flex flex-col items-center mb-6">
+              <div
+                className="relative w-36 h-36 rounded-full flex items-center justify-center"
+                style={{
+                  background: `conic-gradient(#2563eb ${(accuracyPct / 100) * 360}deg, #e2e8f0 0deg)`,
+                }}
+              >
+                <div className="absolute inset-[10px] rounded-full bg-white flex flex-col items-center justify-center shadow-inner">
+                  <span className="text-2xl font-black text-[#2563eb]">{accuracyPct}%</span>
+                  <span className="text-[10px] text-slate-500 font-medium">accuracy</span>
+                </div>
+              </div>
+              <p className={`text-sm font-semibold mt-4 ${performance.color}`}>{performance.message}</p>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-600">Correct</span>
+                <span className="font-bold text-emerald-600">{quizResults.correctAnswers}</span>
+              </div>
+              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-emerald-500"
+                  style={{
+                    width: `${(quizResults.correctAnswers / Math.max(1, quizResults.totalQuestions)) * 100}%`,
+                  }}
+                />
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-600">Incorrect</span>
+                <span className="font-bold text-rose-600">
+                  {quizResults.totalQuestions - quizResults.correctAnswers}
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-rose-400"
+                  style={{
+                    width: `${((quizResults.totalQuestions - quizResults.correctAnswers) / Math.max(1, quizResults.totalQuestions)) * 100}%`,
+                  }}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 mt-4 text-center">
+              Time: {formatDurationShort(quizResults.timeTaken)} · Avg per question:{' '}
+              {quizResults.totalQuestions > 0
+                ? `${(quizResults.timeTaken / quizResults.totalQuestions).toFixed(1)}s`
+                : '—'}
+            </p>
+          </div>
+        )}
+
+        {analysisTab === 'weak-topics' && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.06)] p-4 mb-4">
+            <h2 className="text-sm font-bold text-[#1e293b] mb-1">Questions to strengthen</h2>
+            <p className="text-xs text-slate-500 mb-4">
+              Review these items — they were marked incorrect on this mock test.
+            </p>
+            {wrongAnswers.length === 0 ? (
+              <div className="text-center py-8 px-2">
+                <CheckCircle className="h-12 w-12 text-emerald-500 mx-auto mb-2" />
+                <p className="text-sm font-semibold text-[#1e293b]">No weak spots this time</p>
+                <p className="text-xs text-slate-500 mt-1">Great work — try another mock to stay sharp.</p>
+              </div>
+            ) : (
+              <ul className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+                {wrongAnswers.map((a, idx) => (
+                  <li
+                    key={a.questionId}
+                    className="p-3 rounded-xl bg-rose-50/80 border border-rose-100 text-xs text-slate-700 leading-snug"
+                  >
+                    <span className="font-semibold text-rose-800 mr-1">#{idx + 1}</span>
+                    {a.question.length > 140 ? `${a.question.slice(0, 140)}…` : a.question}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        {/* Summary strip + secondary actions */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+          <div className="text-center mb-3">
+            <p className="text-xs text-slate-500">Overall</p>
+            <p className="text-2xl font-black text-[#2563eb]">{quizResults.score}%</p>
+            <p className="text-[11px] text-slate-600">
+              {quizResults.correctAnswers}/{quizResults.totalQuestions} correct · {quizResults.topic}
+            </p>
+          </div>
+          <div className="space-y-2">
             <button
-              onClick={() => setQuizState('review')}
-              className="w-full bg-orange-500 text-white py-3 rounded-lg font-bold hover:bg-orange-600"
-            >
-              <Eye className="h-5 w-5 inline mr-2" />
-              Review Answers
-            </button>
-            <button
+              type="button"
               onClick={restartQuiz}
-              className="w-full bg-blue-800 text-yellow-300 py-3 rounded-lg font-bold hover:bg-blue-900"
+              className="w-full py-3 rounded-xl bg-[#1e3a8a] text-amber-200 text-sm font-bold hover:bg-[#172554]"
             >
-              Take Another Quiz
+              Take another mock test
             </button>
             <button
-              onClick={() => setActiveTab('history')}
-              className="w-full bg-yellow-200 text-blue-800 py-3 rounded-lg font-bold hover:bg-yellow-300"
+              type="button"
+              onClick={() => {
+                setActiveTab('history');
+                setQuizState('topic-selection');
+              }}
+              className="w-full py-3 rounded-xl bg-slate-100 text-[#1e293b] text-sm font-semibold hover:bg-slate-200"
             >
-              View History
+              View history
             </button>
           </div>
         </div>
@@ -706,7 +1240,7 @@ export const AiQuizPage: React.FC = () => {
     );
   }
 
-  // History Tab
+  // History Tab (topic-selection + history is handled above)
   if (activeTab === 'history') {
     return (
       <div className="min-h-screen bg-yellow-100 p-4">

@@ -131,7 +131,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, userData, onLogout }
       case 'subscription':
         return <SubscriptionPage userData={currentUserData} onSubscriptionUpdate={handleSubscriptionUpdate} />;
       case 'profile':
-        return <ProfilePage user={user} onLogout={onLogout} />;
+        return <ProfilePage user={user} userData={currentUserData} onLogout={onLogout} />;
       default:
         return (
           <DashboardPage 
