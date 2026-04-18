@@ -1,4 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import ReactMarkdown, { type Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeSanitize from 'rehype-sanitize';
 import { 
   Send, 
   Bot, 
@@ -53,40 +56,154 @@ const customStyles = `
   .animate-sparkle { animation: sparkle 3s ease-in-out infinite; }
 `;
 
-// Markdown rendering function
-const renderMarkdown = (text: string) => {
-  // Convert markdown to HTML-like elements
+/** Strips markdown for TTS — keeps readable plain text */
+function stripMarkdownForSpeech(text: string): string {
   return text
-    // Bold text: **text** or __text__
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/__(.*?)__/g, '<strong>$1</strong>')
-    // Italic text: *text* or _text_
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/_(.*?)_/g, '<em>$1</em>')
-    // Code: `code`
-    .replace(/`(.*?)`/g, '<code class="bg-gray-200 px-1 py-0.5 rounded text-sm font-mono">$1</code>')
-    // Lists: - item or * item
-    .replace(/^[-*]\s+(.+)$/gm, '<li class="ml-4">$1</li>')
-    // Numbered lists: 1. item
-    .replace(/^\d+\.\s+(.+)$/gm, '<li class="ml-4">$1</li>')
-    // Headers: # Header
-    .replace(/^#\s+(.+)$/gm, '<h3 class="text-lg font-bold text-gray-900 mb-2">$1</h3>')
-    .replace(/^##\s+(.+)$/gm, '<h4 class="text-base font-semibold text-gray-800 mb-1">$1</h4>')
-    // Line breaks
-    .replace(/\n/g, '<br>')
-    // Wrap lists in ul tags
-    .replace(/(<li.*?<\/li>)/gs, '<ul class="list-disc space-y-1 mb-2">$1</ul>');
-};
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/_([^_]+)_/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^[-*+]\s+/gm, '')
+    .replace(/^\d+\.\s+/gm, '')
+    .replace(/\[(.*?)\]\([^)]*\)/g, '$1')
+    .replace(/\n{2,}/g, '\n')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
-// Component to render formatted text
-const FormattedText: React.FC<{ text: string }> = ({ text }) => {
-  const formattedText = renderMarkdown(text);
-  
+function createMarkdownComponents(variant: 'user' | 'assistant'): Components {
+  const heading = variant === 'assistant' ? 'text-[#1e293b] lg:text-white' : 'text-[#1e293b]';
+  const linkClass =
+    variant === 'assistant'
+      ? 'text-blue-600 underline font-medium hover:text-blue-800 lg:text-blue-100 lg:hover:text-white break-all'
+      : 'text-blue-600 underline font-medium hover:text-blue-800 break-all';
+
+  return {
+    p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed break-words">{children}</p>,
+    h1: ({ children }) => (
+      <h1 className={`text-lg font-bold mt-3 mb-2 first:mt-0 ${heading}`}>{children}</h1>
+    ),
+    h2: ({ children }) => (
+      <h2 className={`text-base font-bold mt-3 mb-1.5 first:mt-0 ${heading}`}>{children}</h2>
+    ),
+    h3: ({ children }) => (
+      <h3 className={`text-sm font-semibold mt-2 mb-1 ${heading}`}>{children}</h3>
+    ),
+    h4: ({ children }) => (
+      <h4 className={`text-sm font-semibold mt-2 mb-1 ${heading}`}>{children}</h4>
+    ),
+    ul: ({ children }) => (
+      <ul className="my-2 ml-1 list-disc space-y-1 pl-5 [li]:pl-0.5">{children}</ul>
+    ),
+    ol: ({ children }) => (
+      <ol className="my-2 ml-1 list-decimal space-y-1 pl-5 [li]:pl-0.5">{children}</ol>
+    ),
+    li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+    em: ({ children }) => <em className="italic">{children}</em>,
+    blockquote: ({ children }) => (
+      <blockquote
+        className={`border-l-4 pl-3 my-2 italic ${
+          variant === 'assistant'
+            ? 'border-slate-300 text-slate-700 lg:border-blue-300/80 lg:text-blue-50'
+            : 'border-slate-300 text-slate-700'
+        }`}
+      >
+        {children}
+      </blockquote>
+    ),
+    a: ({ href, children }) => (
+      <a href={href} className={linkClass} target="_blank" rel="noopener noreferrer">
+        {children}
+      </a>
+    ),
+    hr: () => (
+      <hr
+        className={
+          variant === 'assistant' ? 'my-3 border-gray-200 lg:border-blue-400/40' : 'my-3 border-gray-200'
+        }
+      />
+    ),
+    table: ({ children }) => (
+      <div className="overflow-x-auto my-2 -mx-0.5 max-w-full">
+        <table
+          className={`min-w-full text-xs border-collapse rounded-md overflow-hidden ${
+            variant === 'assistant'
+              ? 'border border-gray-200 lg:border-blue-400/35'
+              : 'border border-gray-200'
+          }`}
+        >
+          {children}
+        </table>
+      </div>
+    ),
+    thead: ({ children }) => (
+      <thead className={variant === 'assistant' ? 'bg-gray-100 lg:bg-blue-500/25' : 'bg-gray-100'}>
+        {children}
+      </thead>
+    ),
+    th: ({ children }) => (
+      <th
+        className={`border px-2 py-1.5 text-left font-semibold ${
+          variant === 'assistant' ? 'border-gray-200 lg:border-blue-400/35' : 'border-gray-200'
+        }`}
+      >
+        {children}
+      </th>
+    ),
+    td: ({ children }) => (
+      <td
+        className={`border px-2 py-1.5 ${
+          variant === 'assistant' ? 'border-gray-200 lg:border-blue-400/35' : 'border-gray-200'
+        }`}
+      >
+        {children}
+      </td>
+    ),
+    tr: ({ children }) => <tr>{children}</tr>,
+    tbody: ({ children }) => <tbody>{children}</tbody>,
+    code: ({ className, children, ...props }) => {
+      const isBlock = Boolean(className?.includes('language-'));
+      if (!isBlock) {
+        return (
+          <code
+            className={`px-1.5 py-0.5 rounded text-[0.85em] font-mono ${
+              variant === 'assistant'
+                ? 'bg-slate-200/90 text-[#1e293b] lg:bg-blue-500/35 lg:text-white'
+                : 'bg-slate-200/90 text-[#1e293b]'
+            }`}
+            {...props}
+          >
+            {children}
+          </code>
+        );
+      }
+      return (
+        <code className={className} {...props}>
+          {children}
+        </code>
+      );
+    },
+    pre: ({ children }) => (
+      <pre className="overflow-x-auto rounded-xl bg-slate-900 text-slate-100 p-3 my-2 text-xs leading-relaxed border border-slate-700 shadow-inner [&_code]:!bg-transparent [&_code]:!p-0 [&_code]:text-inherit [&_code]:block [&_code]:whitespace-pre-wrap break-words">
+        {children}
+      </pre>
+    ),
+  };
+}
+
+const FormattedText: React.FC<{ text: string; variant: 'user' | 'assistant' }> = ({ text, variant }) => {
+  const components = useMemo(() => createMarkdownComponents(variant), [variant]);
+
   return (
-    <div 
-      className="prose prose-sm max-w-none"
-      dangerouslySetInnerHTML={{ __html: formattedText }}
-    />
+    <div className="max-w-none text-sm">
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]} components={components}>
+        {text}
+      </ReactMarkdown>
+    </div>
   );
 };
 
@@ -595,20 +712,7 @@ export const AiChatPage: React.FC = () => {
       setSpeakingMessageId(null);
     };
 
-    // Remove markdown formatting for speech
-    const cleanText = text
-      .replace(/\*\*(.*?)\*\*/g, '$1')
-      .replace(/__(.*?)__/g, '$1')
-      .replace(/\*(.*?)\*/g, '$1')
-      .replace(/_(.*?)_/g, '$1')
-      .replace(/`(.*?)`/g, '$1')
-      .replace(/^[-*]\s+/gm, '')
-      .replace(/^\d+\.\s+/gm, '')
-      .replace(/^#+\s+/gm, '')
-      .replace(/\n/g, ' ')
-      .replace(/[^\w\s.,!?-]/g, ''); // Remove special characters
-
-    utterance.text = cleanText;
+    utterance.text = stripMarkdownForSpeech(text);
     speechSynthesis.speak(utterance);
   };
 
@@ -702,15 +806,15 @@ export const AiChatPage: React.FC = () => {
               <div className="space-y-2">
                 <p className="text-sm">📷 Image uploaded</p>
                 {!isUser && (
-                  <div className="text-sm prose prose-sm max-w-none text-[#2D3142] lg:text-white [&_strong]:lg:text-white">
-                    <FormattedText text={msg.content} />
+                  <div className="text-sm max-w-none text-[#2D3142] lg:text-white [&_strong]:lg:text-white">
+                    <FormattedText text={msg.content} variant="assistant" />
                   </div>
                 )}
               </div>
             ) : (
                 <div className={`text-sm leading-relaxed relative pb-6 lg:pb-0 ${isUser ? 'text-[#2D3142]' : 'text-[#2D3142] lg:text-white'}`}>
                 <div className={!isUser ? 'max-lg:[&_strong]:text-[#2D3142] max-lg:[&_li]:text-[#2D3142]' : ''}>
-                  <FormattedText text={msg.content} />
+                  <FormattedText text={msg.content} variant={isUser ? 'user' : 'assistant'} />
                 </div>
                 {!isUser && (
                   <div className="lg:hidden absolute bottom-0 right-0 flex items-center gap-0.5">
