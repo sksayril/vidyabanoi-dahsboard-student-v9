@@ -21,7 +21,7 @@ import {
 const API_BASE_URL = 'https://api.vidyavani.com/api';
 // const API_BASE_URL = 'http://localhost:3330/api';
 
-// Subscription interfaces
+
 export interface CreateOrderRequest {
   plan: string;
   amount: number;
